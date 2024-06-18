@@ -1,0 +1,2 @@
+dm_object_info_msgs/ObjectInfoArray object_info_array
+NetworkStatus network_status

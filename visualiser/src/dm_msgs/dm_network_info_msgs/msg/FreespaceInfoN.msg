@@ -1,0 +1,2 @@
+dm_freespace_info_msgs/FreespaceInfoArray freespace_info_array
+NetworkStatus network_status

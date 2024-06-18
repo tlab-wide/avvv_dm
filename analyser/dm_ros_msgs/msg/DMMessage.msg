@@ -1,0 +1,2 @@
+builtin_interfaces/Time stamp
+std_msgs/String csv_row

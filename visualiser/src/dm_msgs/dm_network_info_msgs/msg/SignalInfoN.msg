@@ -1,0 +1,2 @@
+dm_signal_info_msgs/SignalInfoArray signal_info_array
+NetworkStatus network_status
