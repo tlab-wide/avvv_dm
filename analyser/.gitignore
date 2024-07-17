@@ -19,3 +19,4 @@ improvement.txt
 miss_from_commit.txt
 input_files_from_simulation
 input_files
+__pycache__
