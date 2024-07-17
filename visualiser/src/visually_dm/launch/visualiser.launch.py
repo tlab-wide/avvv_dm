@@ -12,10 +12,10 @@ from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 BASE_ALTITUDE = 20.0
 
 # Pointcloud filename
-PCD_FILENAME = "/home/amirint/projects/tmp/kashiwanoha_binary_MGRS.pcd"
+PCD_FILENAME = ""
 
 # Lanelet filename
-LANELET_FILENAME = "/home/amirint/projects/tmp/lanelet2_map.osm"
+LANELET_FILENAME = ""
 
 # Topics and their transmitting links
 RSU_DETECTION_TOPIC = "/object_info/dm [ RSU_0 OBU_0 | RSU_1 OBU_0 | RSU_2 OBU_0 | RSU_0 CLD_0 OBU_0 | RSU_1 CLD_0 OBU_0 | RSU_2 CLD_0 OBU_0 ]"
