@@ -76,121 +76,121 @@ class NetStatusRepr
         ~NetStatusRepr();
 
         // The functions that handle link colour specification
-        const std::function<rviz_visual_tools::Colors(const cpm_ros_msgs::msg::NetworkStatus&)> getColour[maxNetworkFields]{
-            [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
+        const std::function<rviz_visual_tools::Colors(const dm_network_info_msgs::msg::NetworkStatus&)> getColour[maxNetworkFields]{
+            [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
                 int index{ static_cast<int>((ns.delay - net_param_ranges_.delay_best)
                         * colours_num_
                         / (net_param_ranges_.delay_worst - net_param_ranges_.delay_best)) };
                 
                 return colours_[std::min(std::max(index, 0), colours_num_ - 1)];
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
                 int index{ static_cast<int>((ns.jitter - net_param_ranges_.jitter_best)
                         * colours_num_
                         / (net_param_ranges_.jitter_worst - net_param_ranges_.jitter_best)) };
                 
                 return colours_[std::min(std::max(index, 0), colours_num_ - 1)];
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
                 int index{ static_cast<int>((ns.rssi - net_param_ranges_.rssi_worst)
                         * colours_num_
                         / (net_param_ranges_.rssi_best - net_param_ranges_.rssi_worst)) };
                 
                 return colours_[std::min(std::max(index, 0), colours_num_ - 1)];
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> rviz_visual_tools::Colors {
                 int index{ static_cast<int>((ns.packet_loss - net_param_ranges_.packet_loss_best)
                         * colours_num_
                         / (net_param_ranges_.packet_loss_worst - net_param_ranges_.packet_loss_best)) };
                 
                 return colours_[std::min(std::max(index, 0), colours_num_ - 1)];
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus&) -> rviz_visual_tools::Colors {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus&) -> rviz_visual_tools::Colors {
                 return colours_[2]; // Yellow
             }
         };
 
         // The functions that handle link thickness specification
-        const std::function<double(const cpm_ros_msgs::msg::NetworkStatus&)> getThickness[maxNetworkFields]{
-            [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+        const std::function<double(const dm_network_info_msgs::msg::NetworkStatus&)> getThickness[maxNetworkFields]{
+            [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double thickness{ thickness_coef_ * (net_param_ranges_.delay_worst - ns.delay)
                     / (net_param_ranges_.delay_worst - net_param_ranges_.delay_best) };
                 return std::max(std::min(thickness, 0.5), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double thickness{ thickness_coef_ * (net_param_ranges_.jitter_worst - ns.jitter)
                     / (net_param_ranges_.jitter_worst - net_param_ranges_.jitter_best) };
                 return std::max(std::min(thickness, 0.5), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double thickness{ static_cast<double>(thickness_coef_ * (ns.rssi - net_param_ranges_.rssi_worst)
                     / (net_param_ranges_.rssi_best - net_param_ranges_.rssi_worst)) };
                 return std::max(std::min(thickness, 0.5), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double thickness{ thickness_coef_ * (net_param_ranges_.packet_loss_worst - ns.packet_loss)
                     / (net_param_ranges_.packet_loss_worst - net_param_ranges_.packet_loss_best) };
                 return std::max(std::min(thickness, 0.5), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus&) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus&) -> double {
                 return 0.25;
             }
         };
 
         // The functions that handle link packet density specification
-        const std::function<double(const cpm_ros_msgs::msg::NetworkStatus&)> getPacketDensity[maxNetworkFields]{
-            [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+        const std::function<double(const dm_network_info_msgs::msg::NetworkStatus&)> getPacketDensity[maxNetworkFields]{
+            [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double relval{ (ns.delay - net_param_ranges_.delay_best)
                     / (net_param_ranges_.delay_worst - net_param_ranges_.delay_best) };
 
                 return packet_density_min_ + packet_density_coef_ * std::max(std::min(relval, 1.0), 0.0);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double relval{ (ns.jitter - net_param_ranges_.jitter_best)
                     / (net_param_ranges_.jitter_worst - net_param_ranges_.jitter_best) };
 
                 return packet_density_min_ + packet_density_coef_ * std::max(std::min(relval, 1.0), 0.0);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double relval{ static_cast<double>(ns.rssi - net_param_ranges_.rssi_worst)
                     / (net_param_ranges_.rssi_best - net_param_ranges_.rssi_worst) };
 
                 return packet_density_min_ + packet_density_coef_ * std::max(std::min(relval, 1.0), 0.0);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double relval{ (ns.packet_loss - net_param_ranges_.packet_loss_best)
                     / (net_param_ranges_.packet_loss_worst - net_param_ranges_.packet_loss_best) };
 
                 return packet_density_min_ + packet_density_coef_ * std::max(std::min(relval, 1.0), 0.0);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus&) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus&) -> double {
                 return packet_density_min_ + packet_density_coef_ * 0.5;
             }
         };
 
         // The functions that handle link opacity specification
-        const std::function<double(const cpm_ros_msgs::msg::NetworkStatus&)> getOpacity[maxNetworkFields]{
-            [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+        const std::function<double(const dm_network_info_msgs::msg::NetworkStatus&)> getOpacity[maxNetworkFields]{
+            [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double opacity{ (net_param_ranges_.delay_worst - ns.delay)
                     / (net_param_ranges_.delay_worst - net_param_ranges_.delay_best) };
                 return std::max(std::min(opacity, 1.0), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double opacity{ (net_param_ranges_.jitter_worst - ns.jitter)
                     / (net_param_ranges_.jitter_worst - net_param_ranges_.jitter_best) };
                 return std::max(std::min(opacity, 1.0), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double opacity{ static_cast<double>((ns.rssi - net_param_ranges_.rssi_worst)
                     / (net_param_ranges_.rssi_best - net_param_ranges_.rssi_worst)) };
                 return std::max(std::min(opacity, 1.0), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus& ns) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus& ns) -> double {
                 double opacity{ (net_param_ranges_.packet_loss_worst - ns.packet_loss)
                     / (net_param_ranges_.packet_loss_worst - net_param_ranges_.packet_loss_best) };
                 return std::max(std::min(opacity, 1.0), 0.1);
             }
-            , [this](const cpm_ros_msgs::msg::NetworkStatus&) -> double {
+            , [this](const dm_network_info_msgs::msg::NetworkStatus&) -> double {
                 return 1.0;
             }
         };

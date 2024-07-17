@@ -1,5 +1,4 @@
 import os
-
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.substitutions import PathJoinSubstitution
@@ -8,14 +7,38 @@ from launch.actions import IncludeLaunchDescription
 from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 
 
+DELAY = 0
+JITTER = 1
+RSSI = 2
+PACKET_LOSS = 3
+NONE = 4
+
+# The following variables determine how different network features get visualised
+LINK_COLOUR_VALUE = NONE
+LINK_OPACITY_VALUE = NONE
+LINK_THICKNESS_VALUE = NONE
+LINK_PACKET_DENSITY_VALUE = NONE
+
+DELAY_BEST = 0.0
+DELAY_WORST = 1.0
+JITTER_BEST = 0.0
+JITTER_WORST = 1.0
+RSSI_BEST = 255
+RSSI_WORST = 0
+PACKET_LOSS_BEST = 0.0
+PACKET_LOSS_WORST = 1.0
+
 # Base altitude for unknown altitude values in DM messages
-BASE_ALTITUDE = 20.0
+BASE_ALTITUDE = 0.0
 
 # Pointcloud filename
 PCD_FILENAME = ""
 
 # Lanelet filename
 LANELET_FILENAME = ""
+
+# RSU-OBU connection distance range
+RSU_OBU_CON_DIST = 300.0
 
 # Topics and their transmitting links
 RSU_DETECTION_TOPIC = "/object_info/dm [ RSU_0 OBU_0 | RSU_1 OBU_0 | RSU_2 OBU_0 | RSU_0 CLD_0 OBU_0 | RSU_1 CLD_0 OBU_0 | RSU_2 CLD_0 OBU_0 ]"
@@ -32,6 +55,9 @@ RSU_TOPICS = [
     "/rsu_1/tf",
     "/rsu_2/tf",
 ]
+
+# Pointcloud and lanelet map offset (x, y, z in metres)
+MAP_OFFSET = [0.0, 0.0, 0.0]
 
 # OBU_TOPICS must match the order in OBU_LIST
 OBU_TOPICS = [
@@ -114,21 +140,44 @@ LINKS = [
     "RSU_2 CLD_0 OBU_0",
 ]
 
-# RSU-OBU connection distance range
-RSU_OBU_CON_DIST = 300.0
+# The target RSU and OBU for real time graphs and offline heatmaps
+TARGET_RSU_ID = ""
+TARGET_OBU_ID = ""
 
-# Pointcloud and lanelet map offset (x, y, z in metres)
-MAP_OFFSET = [0.0, 0.0, 0.0]
+# Offline Heatmap
+OFF_HM_PATH = ""
+OFF_HM_ATTR = DELAY
+
+# Real time Heatmap
+ON_HM = False
+
+# Real time graphs
+RT_GRAPHS = False
 
 VISUALLY_DM_PARAMETERS = [
     {'base_altitude': BASE_ALTITUDE},
     {'pcd_file': PCD_FILENAME},
+    {'map_offset': MAP_OFFSET},
+    {'link_colour': LINK_COLOUR_VALUE},
+    {'link_thickness': LINK_THICKNESS_VALUE},
+    {'link_packet_density': LINK_PACKET_DENSITY_VALUE},
+    {'link_opacity': LINK_OPACITY_VALUE},
+    {'delay_best': DELAY_BEST},
+    {'delay_worst': DELAY_WORST},
+    {'jitter_best': JITTER_BEST},
+    {'jitter_worst': JITTER_WORST},
+    {'rssi_best': RSSI_BEST},
+    {'rssi_worst': RSSI_WORST},
+    {'packet_loss_best': PACKET_LOSS_BEST},
+    {'packet_loss_worst': PACKET_LOSS_WORST},
     {'rsu_detection_topic': RSU_DETECTION_TOPIC},
     {'obu_detection_topic': OBU_DETECTION_TOPIC},
     {'freespace_topic': FREESPACE_TOPIC},
     {'signal_topic': SIGNAL_TOPIC},
     {'rsu_topics': RSU_TOPICS},
     {'obu_topics': OBU_TOPICS},
+    {'target_rsu_id': TARGET_RSU_ID},
+    {'target_obu_id': TARGET_OBU_ID},
     {'rsu_detected_colour': RSU_DETECTED_COLOUR},
     {'obu_detected_colour': OBU_DETECTED_COLOUR},
     {'freespace_colour': FREESPACE_COLOUR},
@@ -139,7 +188,11 @@ VISUALLY_DM_PARAMETERS = [
     {'cloud_list': CLOUD_LIST},
     {'signal_list': SIGNAL_LIST},
     {'rsu_obu_con_dist': RSU_OBU_CON_DIST},
-    {'pointcloud_offset': MAP_OFFSET}
+]
+
+VISPLOT_PARAMETERS = [
+    {'target_rsu_id': TARGET_RSU_ID},
+    {'target_obu_id': TARGET_OBU_ID}
 ]
 
 def generate_launch_description():
@@ -163,6 +216,16 @@ def generate_launch_description():
             parameters=VISUALLY_DM_PARAMETERS
         )
     ])
+
+    if RT_GRAPHS:
+        launch_description.add_action(
+            Node(
+                package='visplot',
+                executable='plotter_manager',
+                name='plotter_manager',
+                parameters=VISPLOT_PARAMETERS
+            )
+        )
 
     if len(LANELET_FILENAME):
         launch_description.add_entity(

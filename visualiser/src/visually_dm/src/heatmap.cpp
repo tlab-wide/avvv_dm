@@ -136,7 +136,7 @@ void OfflineHeatmap::withdrawHeatmapPoints(
                 heatmap_point_y = value_num;
                 break;
             case 2:
-                cpm_ros_msgs::msg::NetworkStatus net_status;
+                dm_network_info_msgs::msg::NetworkStatus net_status;
                 switch (network_attr_) {
                     case delay:
                         net_status.delay = value_num;
@@ -233,7 +233,7 @@ void OnlineHeatmap::addNewOnlineHeatmapPoint(
     , double value)
 {
     using namespace net_status;
-    cpm_ros_msgs::msg::NetworkStatus net_status;
+    dm_network_info_msgs::msg::NetworkStatus net_status;
     switch (network_attr_) {
         case delay:
             net_status.delay = value;
