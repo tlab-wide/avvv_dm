@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 
 # Package
-from cpm_ros_msgs.msg import NetworkStatus
+from dm_network_info_msgs.msg import NetworkStatus
 from visplot.real_time_plotter import *
 
 
@@ -33,7 +33,7 @@ class PlotterManager(Node):
     
     Methods
     -------
-    update_graphs(message: cpm_ros_msgs.NetworkStatus):
+    update_graphs(message: dm_network_info_msgs.NetworkStatus):
         Updates the graph points based on the incoming network status message 
     """
     def __init__(self):
@@ -81,7 +81,7 @@ class PlotterManager(Node):
 
         Parameters
         ----------
-        message : cpm_ros_msgs.NetworkStatus
+        message : dm_network_info_msgs.NetworkStatus
             The message containing new delay, jitter, RSSI and packet loss data to 
             append to the graphs
         

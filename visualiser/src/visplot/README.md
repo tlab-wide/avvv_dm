@@ -17,7 +17,7 @@ You can resolve the following dependencies using [`rosdep`](https://docs.ros.org
 ### Manual
 
 You need to manually clone the following package beside `visplot`.
-- [cpm_ros_msgs](https://github.com/AmirInt/cpm_ros_msgs)
+- [dm_msgs](https://github.com/AmirInt/dm_msgs)
 
 ## Build
 

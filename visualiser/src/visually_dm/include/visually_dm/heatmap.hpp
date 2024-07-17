@@ -25,7 +25,9 @@
 
 // Package
 #include <visually/entities.hpp>
-#include <cpm_ros_msgs/msg/cpmn.hpp>
+#include <dm_network_info_msgs/msg/object_info_n.hpp>
+#include <dm_network_info_msgs/msg/freespace_info_n.hpp>
+#include <dm_network_info_msgs/msg/signal_info_n.hpp>
 #include <visually/net_status.hpp>
 
 

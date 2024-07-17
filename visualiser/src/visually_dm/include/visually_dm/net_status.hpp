@@ -12,7 +12,7 @@
 #include <cmath>
 
 // Package
-#include <cpm_ros_msgs/msg/network_status.hpp>
+#include <dm_network_info_msgs/msg/network_status.hpp>
 #include <rviz_visual_tools/rviz_visual_tools.hpp>
 
 

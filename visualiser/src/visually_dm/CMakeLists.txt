@@ -33,6 +33,13 @@ target_link_libraries(entities transforms)
 ament_target_dependencies(entities geometry_msgs visualization_msgs interactive_markers shape_msgs tf2 rviz_visual_tools ament_index_cpp tf2_eigen dm_freespace_info_msgs dm_object_info_msgs dm_signal_info_msgs)
 target_include_directories(entities PRIVATE include)
 
+add_subdirectory(lib/csv2 lib/csv2/build)
+
+add_library(heatmap src/heatmap.cpp include/visually_dm/heatmap.hpp)
+ament_target_dependencies(heatmap rclcpp geometry_msgs ament_index_cpp rviz_visual_tools) # TODO: Link the required message types
+target_link_libraries(heatmap entities csv2)
+target_include_directories(heatmap PRIVATE include)
+
 add_library(rviz_tools src/rviz_tools.cpp)
 target_link_libraries(rviz_tools entities)
 ament_target_dependencies(rviz_tools rclcpp interactive_markers rviz_visual_tools tf2_eigen dm_freespace_info_msgs dm_object_info_msgs dm_signal_info_msgs)
