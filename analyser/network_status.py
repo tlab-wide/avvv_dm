@@ -3,7 +3,7 @@ from ros2_interface.ros2file_read import tf_type_reader
 from general_tools import euclidean_distance
 import numpy as np
 from plotting import Plotter
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 from rosbags.typesys.types import builtin_interfaces__msg__Time as builtin_time
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TFMsg
 from rosbags.typesys.types import dm_ros_msgs__msg__NetworkStatus as netstat

@@ -3,7 +3,7 @@ this module reading rosbag2 messages
 """
 import os
 import csv_tools
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 from rosbags.serde import deserialize_cdr
 from rosbags.rosbag2 import Reader
 

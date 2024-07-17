@@ -1,6 +1,6 @@
 from ros2_interface.tools import register_new_types
 from general_tools import creating_directory
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 import os
 
 

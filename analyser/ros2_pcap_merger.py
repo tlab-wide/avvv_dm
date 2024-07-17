@@ -6,7 +6,7 @@ from nodes import NodesManager
 # from ros2_interface.ros2msg_gen import creating_small_cpm_ros2type_msg
 # from ros2_interface.ros2file_read import csv_creator_from_rosbag, txt_creator_from_rosbag
 from ros2_interface.ros2file_gen import create_rosbag2_file_from_pcapAndRos2_files
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 from network_status import NetworkStatus
 
 

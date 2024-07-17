@@ -1,6 +1,6 @@
 import pyshark
 from general_tools import lat_long_to_mgrs
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 
 
 def get_station_type(pkt: pyshark.packet.packet.Packet) -> int:

@@ -1,10 +1,7 @@
 import csv
 from rosbags.serde import deserialize_cdr
-# from rosbags.typesys.types import cpm_ros_msgs__msg__CPMN as cpm
-# from rosbags.typesys.types import cpm_ros_msgs__msg__CPMN as cpmn
-# from rosbags.typesys.types import cpm_ros_msgs__msg__NetworkStatus as netstat
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TF
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 from typing import List
 #
 #

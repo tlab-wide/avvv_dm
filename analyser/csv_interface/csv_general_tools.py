@@ -2,7 +2,7 @@
 from pathlib import Path
 import csv
 from typing import List
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 
 
 

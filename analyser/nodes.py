@@ -1,7 +1,7 @@
 from general_tools import creating_directory, merge_dicts, extract_id_from_pcap_file_name
 from network_status import NetworkStatus
 from typing import List
-from config_AVNV import Conf
+from analyser.config_avvv import Conf
 from abc import ABC
 from plotting import Plotter
 from csv_interface import csv_general_tools, dm_interface
