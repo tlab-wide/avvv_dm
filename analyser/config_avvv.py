@@ -21,12 +21,12 @@ class Conf:
     # csv files section
     dm_protocols: list
     csv_files_directory: str
-    signal_rsu_files: list
-    signal_obu_files: list
-    freeSpace_rsu_files: list
-    freeSpace_obu_files: list
-    object_rsu_files: list
-    object_obu_files: list
+    signal_rsu_files: list = []
+    signal_obu_files: list = []
+    freeSpace_rsu_files: list = []
+    freeSpace_obu_files: list = []
+    object_rsu_files: list = []
+    object_obu_files: list = []
 
     #
     # output section
@@ -91,15 +91,25 @@ class Conf:
 
         # reading information about pcap files
         Conf.csv_files_directory = json.loads(configur.get('csv', 'csv_files_directory'))
-        Conf.dm_protocols = json.loads(configur.get('csv', 'dm_protocols'))
-        Conf.signal_rsu_files = json.loads(configur.get('csv', 'signal_rsu_files'))
-        Conf.signal_obu_files = json.loads(configur.get('csv', 'signal_obu_files'))
-        Conf.freeSpace_rsu_files = json.loads(configur.get('csv', 'freeSpace_rsu_files'))
-        Conf.freeSpace_obu_files = json.loads(configur.get('csv', 'freeSpace_obu_files'))
-        Conf.object_rsu_files = json.loads(configur.get('csv', 'object_rsu_files'))
-        Conf.object_obu_files = json.loads(configur.get('csv', 'object_obu_files'))
+        for file in os.listdir(Conf.csv_files_directory):
+            if "rsu" in file.lower():
+                if "signal" in file.lower():
+                    Conf.signal_rsu_files.append(file)
+                elif "freespace" in file.lower():
+                    Conf.freeSpace_rsu_files.append(file)
+                elif "object" in file.lower():
+                    Conf.object_rsu_files.append(file)
+            elif "obu" in file.lower():
+                if "signal" in file.lower():
+                    Conf.signal_obu_files.append(file)
+                elif "freespace" in file.lower():
+                    Conf.freeSpace_obu_files.append(file)
+                elif "object" in file.lower():
+                    Conf.object_obu_files.append(file)
 
-        # reading information about rosbags files
+        Conf.dm_protocols = json.loads(configur.get('csv', 'dm_protocols'))
+
+        # reading information about ROSBAG files
         Conf.ros2_files_directory = json.loads(configur.get('ros2', 'rosbag_files_directory'))
         Conf.ros2_topics = json.loads(configur.get('ros2', 'topics'))
 
@@ -110,8 +120,6 @@ class Conf:
         Conf.report_output_directory_address = json.loads(configur.get('output', 'report_output_address'))
         Conf.rosbag_output_directory_address = json.loads(configur.get('output', 'rosbag_output_address'))
         Conf.ros2_output_file_name = json.loads(configur.get('output', 'file_name'))
-        # Conf.cpm_topic_name_syntax = json.loads(configur.get('output', 'cpm_topic_name_syntax'))
-        # Conf.cpmn_topic_name_syntax = json.loads(configur.get('output', 'cpmn_topic_name_syntax'))
         Conf.network_status_topic_name_syntax = json.loads(configur.get('output', 'network_status_topic_name_syntax'))
         Conf.equivalent_topics = json.loads(configur.get('output', 'topics_equivalent_to_ros2_topics'))
         Conf.network_status_time = json.loads(configur.get('output', 'network_status_time'))
