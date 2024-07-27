@@ -20,8 +20,8 @@ def dm_merger() -> None:
     :return:
     """
 
-    csv_dict_information: dict = {}  # this dictionary saving information of pcap topics
-    ros_dict_information: dict  # this dictionary saving information of rosbag2 topics
+    csv_dict_information: dict = {}  # this dictionary saving information of CSV topics
+    ros_dict_information: dict  # this dictionary saving information of ROSBAG topics
 
     dm_protocols = Conf.dm_protocols
 

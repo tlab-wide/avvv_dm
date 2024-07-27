@@ -2,7 +2,6 @@
 there are some necessary general functions in this module
 """
 import shutil
-import PySimpleGUI as sg
 import os
 import math
 from typing import List, Dict
@@ -23,13 +22,7 @@ def creating_directory(dir_address: str) -> None:
     :return:
     """
     if os.path.exists(dir_address):
-        ok = sg.popup_ok_cancel(
-            "It seems that a folder with this name and address is exists \n Do you want to replace the new folder with it?\naddress: " + dir_address,
-            title="folder already exist")
-        if ok == "OK":
-            shutil.rmtree(dir_address)
-        else:
-            exit()
+        shutil.rmtree(dir_address)
     os.makedirs(dir_address)
 
 

@@ -1,4 +1,3 @@
-import PySimpleGUI as sg
 from ros2_interface.ros2file_read import tf_type_reader
 from general_tools import euclidean_distance
 import numpy as np
@@ -436,7 +435,6 @@ class NetworkStatus:
         jitter = np.std(delays)
         if draw:
             print("Jitter is : " + str(jitter))
-            sg.PySimpleGUI.popup("Jitter is : " + str(np.std(delays)), background_color="black", title="JITTER ")
 
         return jitter
 
