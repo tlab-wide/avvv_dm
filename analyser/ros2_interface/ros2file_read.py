@@ -3,7 +3,7 @@ this module reading rosbag2 messages
 """
 import os
 import csv_tools
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 from rosbags.serde import deserialize_cdr
 from rosbags.rosbag2 import Reader
 
@@ -73,12 +73,12 @@ def txt_creator_from_rosbag(rosbag_folder_path: str):
         f.write("counter= " + str(counter) + "\n\n")
 
 
-def csv_creator_from_rosbag(output_files_address: str, pcap_dict_input: dict, ros_dict_input: dict) -> None:
+def csv_creator_from_rosbag(output_files_address: str, csv_dict_input: dict, ros_dict_input: dict) -> None:
     """
 
     :param output_files_address:
     :param ros_dict_input:
-    :param pcap_dict_input:
+    :param csv_dict_input:
     :return:
     """
     def get_csv_folder_name(topic_name: str) -> str:
@@ -108,7 +108,7 @@ def csv_creator_from_rosbag(output_files_address: str, pcap_dict_input: dict, ro
     os.mkdir(output_files_address + "/topics_csv_files")
 
     # merging two dictionaries to one dictionary
-    msgs_dict = pcap_dict_input | ros_dict_input
+    msgs_dict = csv_dict_input | ros_dict_input
 
     for topic in msgs_dict:
         if topic.split("/")[-1] not in Conf.csv_topics:

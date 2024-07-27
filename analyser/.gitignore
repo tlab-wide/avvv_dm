@@ -6,7 +6,6 @@ test.py
 test_reader.py
 rosbag_2020_03_24
 output
-pcap
 rosbag_files
 output_files
 .idea

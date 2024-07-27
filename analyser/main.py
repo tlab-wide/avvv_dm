@@ -1,34 +1,40 @@
 from ros2_interface.tools import register_new_types
 from general_tools import creating_directory
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 import os
 
 
 def main():
-    #
-    #
-    # reading conf.ini file
+    # Read the conf.ini file
     Conf()
 
-    #
-    #
-    # creating output directories
+    # Create output directories
     creating_directory(Conf.report_output_directory_address)
     creating_directory(Conf.rosbag_output_directory_address)
 
-    #
-    #
-    # creating output dm topics rosbag2 file (and reports of that) from input csv and rosbag(2) files
+    # Create output DM topics ROSBAG file and reports from input CSV and ROSBAG
     dm_merger()
 
 
 if __name__ == "__main__":
 
-    register_new_types(os.path.dirname(__file__) + "/dm_object_info_msgs/msg")  # registering new rosbag2 types
-    register_new_types(os.path.dirname(__file__) + "/dm_freespace_info_msgs/msg")
-    register_new_types(os.path.dirname(__file__) + "/dm_signal_info_msgs/msg")
-    register_new_types(os.path.dirname(__file__) + "/dm_ros_msgs/msg")
+    # List the paths to the DM message folders
+    dm_base_path = os.path.join(
+            os.environ.get("AVVV_DM_HOME"),
+            "visualiser",
+            "src",
+            "dm_msgs")
+    dm_msg_paths = [
+        os.path.join(dm_base_path, "dm_object_info_msgs", "msg"),
+        os.path.join(dm_base_path, "dm_freespace_info_msgs", "msg"),
+        os.path.join(dm_base_path, "dm_signal_info_msgs", "msg"),
+        os.path.join(dm_base_path, "dm_network_info_msgs", "msg")
+    ]
 
-    from ros2_pcap_merger import dm_merger
+    # Register the messages
+    for path in dm_msg_paths:
+        register_new_types(path)
+
+    from ros2_dm_merger import dm_merger
 
     main()

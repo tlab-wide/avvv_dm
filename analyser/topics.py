@@ -40,9 +40,9 @@ def collect_topics_from_rosbag2_file(src_list: list[Path], topics: list[str], eq
     Args:
         src_list: Source path list.
         topic: Name of topic .
-        :param equivalent_topics: this is a list of topics that are equivalent to inputs rosbag2 files topics
-        :param topics: topics in input rosbag2 files that must be merged with pcap files
-        :param src_list: rosbags files
+        :param equivalent_topics: this is a list of topics that are equivalent to inputs ROSBAG files topics
+        :param topics: topics in input ROSBAG files that must be merged with CSV files
+        :param src_list: ROSBAG files
         :return dictionary like : { topic1:[connection, timestamp, rawdata], ...  }
 
     """

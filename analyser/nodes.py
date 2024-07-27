@@ -1,4 +1,4 @@
-from general_tools import creating_directory, merge_dicts, extract_id_from_pcap_file_name
+from general_tools import creating_directory, merge_dicts, extract_id_from_csv_file_name
 from network_status import NetworkStatus
 from typing import List
 from analyser.config_avvv import Conf
@@ -154,15 +154,15 @@ class Rsu(Node):
 
 
 class Obu(Node):
-    def __init__(self, pcap_file_name: str):
-        super().__init__(pcap_file_name)
+    def __init__(self, csv_file_name: str):
+        super().__init__(csv_file_name)
 
     def get_obu_id(self) -> str:
         """
-        this method return id of obu ( with using file name obu pcap file )
+        This method returns OBU ID (using file name OBU CSV file)
         :return:
         """
-        return extract_id_from_pcap_file_name(self.get_csv_file_name())
+        return extract_id_from_csv_file_name(self.get_csv_file_name())
 
     def get_obu_csv_rows_by_rsu_id(self, rsu_id: int) -> List:
         """this method return csv rows of this obu by obu_id"""
@@ -228,17 +228,17 @@ class NodesManager:
                     rsu_cap = rsu.get_packets()
 
                     f.write("Packets Report\n---------\n\n")
-                    f.write("number of ITS packets in " + obu.get_pcap_file_name() + " (obu) is: " + str(
+                    f.write("number of ITS packets in " + obu.get_csv_file_name() + " (obu) is: " + str(
                         len(list(obu_cap))) + "\n")
-                    f.write("number of ITS packets in " + rsu.get_pcap_file_name() + " (rsu) is: " + str(
+                    f.write("number of ITS packets in " + rsu.get_csv_file_name() + " (rsu) is: " + str(
                         len(list(rsu_cap))) + "\n\n")
 
                     f.write("---------\n")
                     f.write("ID = generationTime_timestamp(gnw)_rsuStationID\n\n")
 
-                    f.write("number of different packet id in " + obu.get_pcap_file_name() + " (obu) is: " + str(
+                    f.write("number of different packet id in " + obu.get_csv_file_name() + " (obu) is: " + str(
                         len(obu.get_packet_id_dict())) + "\n")
-                    f.write("number of different packet id in " + rsu.get_pcap_file_name() + " (rsu) is: " + str(
+                    f.write("number of different packet id in " + rsu.get_csv_file_name() + " (rsu) is: " + str(
                         len(rsu.get_packet_id_dict())) + "\n\n")
 
                     f.write("---------\n")

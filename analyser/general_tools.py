@@ -83,9 +83,9 @@ def merge_dicts(dicts: List[dict], overwrite: bool = True, important_keys: bool 
     return merged_output_dict
 
 
-def extract_id_from_pcap_file_name(file_name) -> str:
+def extract_id_from_csv_file_name(file_name) -> str:
     """
-    this function return id section of pcap file name
+    this function return id section of csv file name
     :param file_name:
     :return:
     """

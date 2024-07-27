@@ -89,7 +89,7 @@ class Conf:
         configur = ConfigParser()
         configur.read(os.path.dirname(__file__) + "/" + config_file_name)
 
-        # reading information about pcap files
+        # reading information about CSV files
         Conf.csv_files_directory = json.loads(configur.get('csv', 'csv_files_directory'))
         for file in os.listdir(Conf.csv_files_directory):
             if "rsu" in file.lower():

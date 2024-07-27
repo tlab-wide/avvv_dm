@@ -2,12 +2,11 @@ from ros2_interface.ros2file_read import tf_type_reader
 from general_tools import euclidean_distance
 import numpy as np
 from plotting import Plotter
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 from rosbags.typesys.types import builtin_interfaces__msg__Time as builtin_time
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TFMsg
-from rosbags.typesys.types import dm_ros_msgs__msg__NetworkStatus as netstat
+from rosbags.typesys.types import dm_network_info_msgs__msg__NetworkStatus as netstat
 from csv_interface import dm_interface
-from packet_interface import pcap_file_interface
 from typing import Dict, List
 
 from ros2_interface.ros2msg_gen import DMCsvMessage, DMNCsvMessage
@@ -381,18 +380,6 @@ class NetworkStatus:
                 temp_pair_packet_list_with_delay.append(pair)
 
         self.pair_packet_list_with_delay = temp_pair_packet_list_with_delay
-
-    @staticmethod
-    def get_rec_correspond_pkt_with_filename(file_name: str, input_packet):
-        """
-        this function get input packet and find correspond packet from correspond file
-        :param file_name: name of correspond file
-        :param input_packet:
-        :return: correspond packet of input packet from correspond file
-        """
-        packet_id = dm_interface.get_id(input_packet)
-
-        return pcap_file_interface.packet_id_dict[file_name][packet_id]
 
     @staticmethod
     def measuring_delay_time(pair_pkts_list):

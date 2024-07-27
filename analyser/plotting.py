@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from general_tools import csv_metadata_creator, csv_from_dict
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 import seaborn as sns
 from matplotlib.animation import FuncAnimation
 import tkinter as tk
