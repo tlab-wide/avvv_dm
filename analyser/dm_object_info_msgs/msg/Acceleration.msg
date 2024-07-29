@@ -1,2 +1,0 @@
-AccelerationValue value
-AccelerationAccuracy accuracy

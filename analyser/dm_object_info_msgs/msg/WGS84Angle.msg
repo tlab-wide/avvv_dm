@@ -1,2 +1,0 @@
-WGS84AngleValue value
-WGS84AngleAccuracy accuracy

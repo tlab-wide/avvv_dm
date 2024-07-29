@@ -1,2 +1,0 @@
-ObjectDimensionValue value
-ObjectDimensionAccuracy accuracy
