@@ -1,31 +1,48 @@
+from abc import ABC
+from typing import List, Iterable
+from pathlib import Path
+
+from pandas.core.frame import _PandasNamedTuple
+
 from general_tools import creating_directory, merge_dicts, extract_id_from_csv_file_name
 from network_status import NetworkStatus
-from typing import List
 from analyser.config_avvv import Conf
-from abc import ABC
 from plotting import Plotter
 from csv_interface import csv_general_tools, dm_interface
-from pathlib import Path
 from ros2_interface.ros2msg_gen import DMCsvMessage
 
 
 class Node(ABC):
     """
-    this class is parent class for the rsu and abu class
-    obu and rsu classes inherit from this class
+    This class is parent class for the RSU and OBU class
     """
 
     def __init__(self, csv_file_name: str):
         self._csv_file_name: str = csv_file_name
-        self._csv_rows: List = self.__reading_csv_file()
+        self._its_station_id: str = self.__get_its_station_id()
+        self._csv_rows = self.__read_csv_file()
         self._dm_protocol_type = None
 
-    def __reading_csv_file(self) -> List:
-        """this function reading csv file and returning list of csv rows """
+    def __read_csv_file(self) -> Iterable[_PandasNamedTuple]:
+        """
+        This function reading csv file and returning list of csv rows
+        """
         rows = csv_general_tools.read_csv_file(Path(self._csv_file_name))
         return rows
 
-    def get_csv_rows(self) -> List:
+    def __get_its_station_id(self):
+        try:
+            file_name = self._csv_file_name
+            # Split the filename by underscore to get the parts
+            parts = file_name.split('_')
+            # Extract the number before '.csv' from the last part
+            station_id = int(parts[-1].split('.')[0])
+            return station_id
+        except Exception as e:
+            print(f"Can't get the station id of {self.get_csv_file_name()}. Error message: {e}")
+            raise f"Can't get the station id of {self.get_csv_file_name()}. Error message: {e}"
+        
+    def get_csv_rows(self) -> Iterable[_PandasNamedTuple]:
         return self._csv_rows
 
     def get_csv_file_name(self) -> str:
@@ -40,27 +57,15 @@ class Node(ABC):
         return self._dm_protocol_type
 
 
-class Rsu(Node):
+class RSU(Node):
     def __init__(self, csv_file_address: str):
         super().__init__(csv_file_address)
         self.__rsu_position_x, self.__rsu_position_y = self.__get_rsu_position_in_xy()
-        self.__rsu_station_id = self.__get_rsu_station_id()
         self.__network_statuses: List[NetworkStatus] = []
         self.__plotter = Plotter(self.get_plots_directory_name())
-
-    def __get_rsu_station_id(self):
-        try:
-            file_name = self.get_csv_file_name()
-            # Split the filename by underscore to get the parts
-            parts = file_name.split('_')
-            # Extract the number before '.csv' from the last part
-            station_id = int(parts[-1].split('.')[0])
-            return station_id
-        except Exception as e:
-            print(f'cant get the station id of {self.get_csv_file_name()}. error message : {e}')
-            raise f'cant get the station id of {self.get_csv_file_name()}. error message : {e}'
+        
     def __get_rsu_position_in_xy(self):
-        return 0, 0  # todo
+        return Conf.rsu_xy_positions[self.__rsu_station_id]
 
     def get_position(self):
         """
@@ -74,7 +79,7 @@ class Rsu(Node):
         this method return station id of Rsu
         :return:
         """
-        return self.__rsu_station_id
+        return self._its_station_id
 
     def get_csv_dm_info(self):
         """
@@ -92,8 +97,10 @@ class Rsu(Node):
         return topic, msg_infos
 
     def get_topic_name(self):
-        """return topic name of dm messages for this rsu"""
-        topic = "/rsu_" + str(self.__rsu_station_id) + "/CSV/" + self._dm_protocol_type
+        """
+        Returns topic name of DM messages for this RSU
+        """
+        topic = f"/RSU_{str(self.__rsu_station_id)}/{self._dm_protocol_type}"
         return topic
 
     def get_plots_directory_name(self) -> str:
@@ -101,7 +108,7 @@ class Rsu(Node):
         this method creates and return the name of the plots directory of this Rsu in the graphs directory
         :return:
         """
-        return "RSU_" + str(self.__rsu_station_id)
+        return f"RSU_{str(self.__rsu_station_id)}"
 
     # def __netstat_position_graphs(self) -> None:
     #     """
@@ -132,7 +139,8 @@ class Rsu(Node):
 
     def append_network_status(self, netstat_obj: NetworkStatus) -> None:
         """
-        this method for adding new network status object to the list of network statuses
+        This method is for adding new network status object to the list of
+        network statuses
         :param netstat_obj: NetworkStatus object
         :return:
         """
@@ -153,7 +161,7 @@ class Rsu(Node):
     #     return self.__network_statuses
 
 
-class Obu(Node):
+class OBU(Node):
     def __init__(self, csv_file_name: str):
         super().__init__(csv_file_name)
 
@@ -162,7 +170,7 @@ class Obu(Node):
         This method returns OBU ID (using file name OBU CSV file)
         :return:
         """
-        return extract_id_from_csv_file_name(self.get_csv_file_name())
+        return self._its_station_id
 
     def get_obu_csv_rows_by_rsu_id(self, rsu_id: int) -> List:
         """this method return csv rows of this obu by obu_id"""

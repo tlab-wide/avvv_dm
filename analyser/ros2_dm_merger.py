@@ -19,15 +19,12 @@ def dm_merger() -> None:
     :return:
     """
 
-    csv_dict_information: dict = {}  # this dictionary saving information of CSV topics
-    ros_dict_information: dict  # this dictionary saving information of ROSBAG topics
+    dm_dict_information: dict = {} # This dictionary keeps information of CSV topics
+    ros_dict_information: dict # This dictionary keeps information of ROSBAG topics
 
     dm_protocols = Conf.dm_protocols
 
     for dm_protocol in dm_protocols:
-
-        rsu_files, obu_files = [], []
-
         try:
             if dm_protocol == "FreeSpaceInfo":
                 rsu_files, obu_files = Conf.freeSpace_rsu_files, Conf.freeSpace_obu_files
@@ -37,22 +34,20 @@ def dm_merger() -> None:
                 rsu_files, obu_files = Conf.signal_rsu_files, Conf.signal_obu_files
 
         except Exception as e:
-            raise "can't read RSU or OBU files. error message : " + str(e)
+            raise f"Can't read RSU or OBU files. Error message:{str(e)}"
 
         if len(rsu_files) == 0 or len(obu_files) == 0:
-            raise "RSU or OBU files not found in config file!!!"
+            raise "RSU or OBU files not found in config file!"
 
-        #
-        # reading csv files and creating Rsu and Obu objects
-        nodes_manager = NodesManager(obu_files,
-                                     rsu_files)  # todo : adding empty csv exception(when csv is empty we got error)
+        # Read CSV files and create RSU and OBU objects
+        nodes_manager = NodesManager(obu_files, rsu_files)  # TODO Add empty CSV exception (when CSV is empty we get error)
 
-        # creating /rsu_#/CSV/SignalInfo, ObjectInfo and FreeSpaceInfo topics in final rosbag2
+        # Create /rsu_#/CSV/SignalInfo, ObjectInfo and FreeSpaceInfo topics in final rosbag2
         for rsu in nodes_manager.get_rsu_nodes():
             rsu.set_dm_protocol_type(dm_protocol)
 
             topic, rsu_dm_msgs = rsu.get_csv_dm_info()
-            csv_dict_information[topic] = rsu_dm_msgs
+            dm_dict_information[topic] = rsu_dm_msgs
 
         #
         # creating /obu_#/rsu_#/network_status and /obu_#/rsu_#/cpmn topics in final rosbag2
@@ -76,12 +71,12 @@ def dm_merger() -> None:
                 netstat_topic = obu_rsu_network_status_class.get_topic(
                     dm_protocol + "/" + Conf.network_status_topic_name_syntax)
                 ros2type_network_status_list = obu_rsu_network_status_class.get_ros2type_network_status_list()
-                csv_dict_information[netstat_topic] = ros2type_network_status_list
+                dm_dict_information[netstat_topic] = ros2type_network_status_list
 
                 # /obu_#/rsu_#/cpmn topic generating
                 cpmn_topic = obu_rsu_network_status_class.get_topic(dm_protocol + "/dmn")
                 ros2type_cpmn_list = obu_rsu_network_status_class.get_ros2type_cpmn_list()
-                csv_dict_information[cpmn_topic] = ros2type_cpmn_list
+                dm_dict_information[cpmn_topic] = ros2type_cpmn_list
 
     # ROSBAG topics
     ros_dict_information = topics.collect_topics_from_rosbag2_file(Conf.ros2_files_path, Conf.ros2_topics,
@@ -89,7 +84,7 @@ def dm_merger() -> None:
 
     # Create output ROSBAG file
     create_rosbag2_file_from_dmAndRos2_files(Conf.rosbag_output_directory_address, Conf.ros2_output_file_name,
-                                               csv_dict_information, ros_dict_information)
+                                               dm_dict_information, ros_dict_information)
 
     # Create graphs of RSU
     # if Conf.rsu_only_graphs:
@@ -102,4 +97,4 @@ def dm_merger() -> None:
     #     txt_creator_from_rosbag(Conf.rosbag_output_directory_address + "/rosbag2_" + Conf.ros2_output_file_name)
     #
     # if Conf.csv_files:
-    #     csv_creator_from_rosbag(Conf.report_output_directory_address, csv_dict_information, ros_dict_information)
+    #     csv_creator_from_rosbag(Conf.report_output_directory_address, dm_dict_information, ros_dict_information)

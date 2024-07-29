@@ -24,17 +24,12 @@ if __name__ == "__main__":
             "visualiser",
             "src",
             "dm_msgs")
-    dm_msg_paths = [
-        os.path.join(dm_base_path, "dm_object_info_msgs", "msg"),
-        os.path.join(dm_base_path, "dm_freespace_info_msgs", "msg"),
-        os.path.join(dm_base_path, "dm_signal_info_msgs", "msg"),
-        os.path.join(dm_base_path, "dm_network_info_msgs", "msg")
-    ]
-
     # Register the messages
-    for path in dm_msg_paths:
-        register_new_types(path)
-
+    register_new_types(os.path.join(dm_base_path, "dm_object_info_msgs", "msg"))
+    register_new_types(os.path.join(dm_base_path, "dm_freespace_info_msgs", "msg"))
+    register_new_types(os.path.join(dm_base_path, "dm_signal_info_msgs", "msg"))
+    register_new_types(os.path.join(dm_base_path, "dm_network_info_msgs", "msg"))
+    
     from ros2_dm_merger import dm_merger
 
     main()

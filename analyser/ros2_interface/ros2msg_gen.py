@@ -2,7 +2,6 @@
 This module creates ros2 messages
 """
 from rosbags.typesys.types import builtin_interfaces__msg__Time as builtin_time
-from rosbags.typesys.types import std_msgs__msg__String as RosString
 from rosbags.typesys.types import dm_network_info_msgs__msg__NetworkStatus as NetworkStatusMessage
 from rosbags.typesys.types import dm_network_info_msgs__msg__ObjectInfoN as ObjectInfoN
 from rosbags.typesys.types import dm_network_info_msgs__msg__FreespaceInfoN as FreespaceInfoN
