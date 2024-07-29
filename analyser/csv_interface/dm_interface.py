@@ -1,44 +1,103 @@
 from typing import Tuple
 
 
-def get_epochtime(csv_row: str) -> int:
-    """this function getting each csv row of RSU or OBU and return time of send or receive of that """
-    # Correct this later
-    # return int(csv_row.split(",")[-1])
-    return int(csv_row[-1])
+def get_object_id(dataframe_row) -> int:
+    """
+    This function gets each (object_info or freespace_info)
+    dataframe row of RSU or OBU and returns object ID in it
+    """
+    return int(dataframe_row[0], 16)
 
 
-def get_timestamp(csv_row: str, rsu: bool) -> int:
-    """this function getting each csv row of RSU or OBU and return time of send or receive of that """
-    # TODO Correct this later
-    # if rsu:
-    #     return int(csv_row.split(",")[-1])
-    # return int(csv_row.split(",")[-2])
-    return int(csv_row[-2])
+def get_object_timestamp_its(dataframe_row) -> int:
+    """
+    This function gets each (object_info or freespace_info)
+    dataframe row of RSU or OBU and returns the ITS timestamp in it
+    """
+    return int(dataframe_row[1])
 
 
-def get_rsu_id(csv_row: str) -> int:
+def get_signal_crp_id(dataframe_row) -> int:
+    """
+    This function gets each (signal_info) dataframe row of
+    RSU or OBU and returns object ID in it
+    """
+    return int(dataframe_row[0])
+
+
+def get_signal_beacon_id(dataframe_row) -> int:
+    """
+    This function gets each (signal_info) dataframe row of
+    RSU or OBU and returns object ID in it
+    """
+    return dataframe_row[1]
+
+
+def get_signal_timestamp_its(dataframe_row) -> int:
+    """
+    This function gets each (signal_info) dataframe row of RSU or
+    OBU and returns the ITS timestamp in it
+    """
+    return int(dataframe_row[2])
+
+
+def get_send_epochtime(dataframe_row) -> int:
+    """
+    This function gets each dataframe row of RSU or
+    OBU and returns time of send or receive of that
+    """
+    return int(dataframe_row[-2])
+
+
+def get_receive_epochtime(dataframe_row) -> int:
+    """
+    This function gets each dataframe row OBU and
+    return time of receive of that
+    """
+    return int(dataframe_row[-1])
+
+
+def get_rsu_id(dataframe_row) -> int:
     """this function gets the CSV row of obu and returns id of rsu that sent this DM message"""
     # TODO Correct this later
-    # return int(csv_row.split(",")[0])
-    return int(csv_row[0])
+    # return int(dataframe_row.split(",")[0])
+    return int(dataframe_row[0])
 
 
-def get_rsu_position_in_xy(csv_row: str) -> Tuple[int, int]:
+def get_rsu_position_in_xy(dataframe_row: str) -> Tuple[int, int]:
     """this function return position of rsu"""
     # todo : complete this function later
     return 0, 0
 
 
-def get_id(csv_row: str, is_rsu: bool = True) -> str:
-    """this function return uniq id of csv row"""
-    # TODO: change this later
-    timestamp = get_timestamp(csv_row, is_rsu)
-    crp_id = csv_row[0]
-    beacon_id = csv_row[1]
-    # station_id = get_station_id(pkt) # todo : add this variables to id
-    # generation_time = get_generationdeltatime(pkt, False)
-    # lat = get_latitude(pkt)
-    # pkt_id = str(generation_time) + "_" + str(timestamp) + "_" + str(station_id) + "_" + str(lat)
-    id = ",".join([str(timestamp), str(crp_id), str(beacon_id)])
+def get_object_packet_id(dataframe_row) -> str:
+    """
+    Returns a unique ID for a given packet represented by the dataframe row
+    """
+    object_id = get_object_id(dataframe_row)
+    timestamp_its = get_object_timestamp_its(dataframe_row)
+    send_epoch = get_send_epochtime(dataframe_row)
+    id = ",".join([str(object_id), str(timestamp_its), str(send_epoch)])
+    return id
+
+
+def get_freespace_packet_id(dataframe_row) -> str:
+    """
+    Returns a unique ID for a given packet represented by the dataframe row
+    """
+    object_id = get_object_id(dataframe_row)
+    timestamp_its = get_object_timestamp_its(dataframe_row)
+    send_epoch = get_send_epochtime(dataframe_row)
+    id = ",".join([str(object_id), str(timestamp_its), str(send_epoch)])
+    return id
+
+
+def get_signal_packet_id(dataframe_row) -> str:
+    """
+    Returns a unique ID for a given packet represented by the dataframe row
+    """
+    crp_id = get_signal_crp_id(dataframe_row)
+    beacon_id = get_signal_beacon_id(dataframe_row)
+    send_epoch = get_send_epochtime(dataframe_row)
+    id = ",".join([str(crp_id), str(beacon_id), str(send_epoch)])
     return id

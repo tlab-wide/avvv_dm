@@ -1,27 +1,22 @@
 """this module contain some useful function for working with csv files """
 from pathlib import Path
-import csv
-from typing import List
+
+import pandas
+
 from analyser.config_avvv import Conf
 
 
 
-def read_csv_file(csv_file_path: Path) -> List:
+def read_csv_file(csv_file_path: Path) -> pandas.DataFrame:
     """
-    Read a CSV file and return a list of values.
+    Read a CSV file and returns a pandas.DataFrame of its content
 
     Parameters:
-    - csv_file_path (Path): The path to the CSV file.
+    - csv_file_path (Path): The path to the CSV file
 
     Returns:
-    - list: A list of values read from the CSV file.
+    - list: A list of values read from the CSV file
     """
-    values = []
-    with open(Path(Conf.csv_files_directory) / csv_file_path, 'r', newline='') as csvfile:
-        csv_reader = csv.reader(csvfile)
-        for row in csv_reader:
-            # TODO: correct this later
-            # values.append(','.join(row))
-            values.append(row)
+    df = pandas.read_csv(csv_file_path, header=None, on_bad_lines="skip")
 
-    return values
+    return df
