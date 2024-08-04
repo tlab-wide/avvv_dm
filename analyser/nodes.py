@@ -39,7 +39,6 @@ class Node(ABC):
             station_id = int(parts[-1].split('.')[0])
             return station_id
         except Exception as e:
-            print(f"Can't get the station id of {self.get_csv_file_name()}. Error message: {e}")
             raise f"Can't get the station id of {self.get_csv_file_name()}. Error message: {e}"
         
     def get_csv_rows(self) -> Iterable[_PandasNamedTuple]:
@@ -65,7 +64,7 @@ class RSU(Node):
         self.__plotter = Plotter(self.get_plots_directory_name())
         
     def __get_rsu_position_in_xy(self):
-        return Conf.rsu_xy_positions[self.__rsu_station_id]
+        return Conf.rsu_info[self.__rsu_station_id]["xy"]
 
     def get_position(self):
         """
@@ -91,7 +90,7 @@ class RSU(Node):
         for csv_row in self._csv_rows:
             dm_csv_row_message_time_stamp = dm_interface.get_epochtime(csv_row)
             msg_info = [dm_csv_row_message_time_stamp,
-                        DMCsvMessage(csv_row, dm_csv_row_message_time_stamp).ros_csv_dm_message]
+                        DMCsvMessage(csv_row, dm_csv_row_message_time_stamp).ros_csv_dm_message] # TODO: Build up the real DM messages
             msg_infos.append(msg_info)
 
         return topic, msg_infos
@@ -173,11 +172,26 @@ class OBU(Node):
         return self._its_station_id
 
     def get_obu_csv_rows_by_rsu_id(self, rsu_id: int) -> List:
-        """this method return csv rows of this obu by obu_id"""
+        """
+        This method returns CSV rows of this OBU by RSU ID
+        """
+        
+        if self._dm_protocol_type == "ObjectInfo":
+            get_rsu_indicator = dm_interface.get_object_information_source_list
+            rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
+        elif self._dm_protocol_type == "FreespaceInfo":
+            get_rsu_indicator = dm_interface.get_freespace_information_source_list
+            rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
+        elif self._dm_protocol_type == "SignalInfo":
+            get_rsu_indicator = dm_interface.get_signal_crp_id
+            rsu_indicator = Conf.rsu_info[str(rsu_id)]["crp_id"]
+        else:
+            raise Exception("Protocol not specified when getting rows by RSU ID")
+        
         output_list = []
         for csv_row in self.get_csv_rows():
-            # if dm_interface.get_rsu_id(csv_row) == rsu_id: # todo : adding this condition later
-            output_list.append(csv_row)
+            if get_rsu_indicator(csv_row) in rsu_indicator:
+                output_list.append(csv_row)
         return output_list
 
 
@@ -189,31 +203,31 @@ class NodesManager:
     def __init__(self, obu_file_names: List[str], rsu_file_names: List[str]):
         self.__obu_file_names: List[str] = obu_file_names
         self.__rsu_file_names: List[str] = rsu_file_names
-        self.__rsu_nodes: List[Rsu] = self.__create_rsu_nodes()
-        self.__obu_nodes: List[Obu] = self.__create_obu_nodes()
+        self.__rsu_nodes: List[RSU] = self.__create_rsu_nodes()
+        self.__obu_nodes: List[OBU] = self.__create_obu_nodes()
         # self.__nodes_reporter()
 
-    def __create_rsu_nodes(self) -> List[Rsu]:
+    def __create_rsu_nodes(self) -> List[RSU]:
         """
         this method creates rsu objects from rsu file names
         :return:
         """
-        rsu_nodes_list: List[Rsu] = []
+        rsu_nodes_list: List[RSU] = []
 
         for rsu_csv_file_name in self.__rsu_file_names:
-            rsu_nodes_list.append(Rsu(rsu_csv_file_name))
+            rsu_nodes_list.append(RSU(rsu_csv_file_name))
 
         return rsu_nodes_list
 
-    def __create_obu_nodes(self) -> List[Obu]:
+    def __create_obu_nodes(self) -> List[OBU]:
         """
         this method creates obu objects from obu file names
         :return:
         """
-        obu_nodes_list: List[Obu] = []
+        obu_nodes_list: List[OBU] = []
 
         for obu_csv_file_name in self.__obu_file_names:
-            obu_nodes_list.append(Obu(obu_csv_file_name))
+            obu_nodes_list.append(OBU(obu_csv_file_name))
 
         return obu_nodes_list
 
@@ -251,10 +265,10 @@ class NodesManager:
 
                     f.write("---------\n")
 
-    def get_obu_nodes(self) -> List[Obu]:
+    def get_obu_nodes(self) -> List[OBU]:
         return self.__obu_nodes
 
-    def get_rsu_nodes(self) -> List[Rsu]:
+    def get_rsu_nodes(self) -> List[RSU]:
         return self.__rsu_nodes
 
     def get_obu_file_names(self) -> List[str]:

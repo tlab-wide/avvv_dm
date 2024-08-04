@@ -14,8 +14,9 @@ from network_status import NetworkStatus
 
 def dm_merger() -> None:
     """
-    this is the primary function for merging csv files ( dm protocols) and ros2 files into one ros2 file with cpm-related topics
-    this function also creates reports files for the files, topics, and network status
+    This is the primary function for merging CSV files (dm protocols)
+    and ros2 files into one ros2 file with cpm-related topics
+    This function also creates reports files for the files, topics, and network status
     :return:
     """
 
@@ -26,7 +27,7 @@ def dm_merger() -> None:
 
     for dm_protocol in dm_protocols:
         try:
-            if dm_protocol == "FreeSpaceInfo":
+            if dm_protocol == "FreespaceInfo":
                 rsu_files, obu_files = Conf.freeSpace_rsu_files, Conf.freeSpace_obu_files
             if dm_protocol == "ObjectInfo":
                 rsu_files, obu_files = Conf.object_rsu_files, Conf.object_obu_files
@@ -42,32 +43,32 @@ def dm_merger() -> None:
         # Read CSV files and create RSU and OBU objects
         nodes_manager = NodesManager(obu_files, rsu_files)  # TODO Add empty CSV exception (when CSV is empty we get error)
 
-        # Create /rsu_#/CSV/SignalInfo, ObjectInfo and FreeSpaceInfo topics in final rosbag2
+        # Create /RSU_#/[dm_protocol] topics in final ROSBAG
         for rsu in nodes_manager.get_rsu_nodes():
             rsu.set_dm_protocol_type(dm_protocol)
 
-            topic, rsu_dm_msgs = rsu.get_csv_dm_info()
+            topic, rsu_dm_msgs = rsu.get_csv_dm_info() # TODO: Complete method
             dm_dict_information[topic] = rsu_dm_msgs
 
-        #
-        # creating /obu_#/rsu_#/network_status and /obu_#/rsu_#/cpmn topics in final rosbag2
+        # Create /OBU_#/RSU_#/network_status and /OBU_#/RSU_#/[dm_protocol] topics in final ROSBAG
         for obu in nodes_manager.get_obu_nodes():
+            obu.set_dm_protocol_type(dm_protocol)
             for rsu in nodes_manager.get_rsu_nodes():
                 rsu_station_id = rsu.get_station_id()
                 obu_id = obu.get_obu_id()
                 sender_cap = rsu.get_csv_rows()
-                receiver_cap = obu.get_obu_csv_rows_by_rsu_id(rsu_station_id)  # todo : this method not completed
+                receiver_cap = obu.get_obu_csv_rows_by_rsu_id(rsu_station_id)
 
                 if len(sender_cap) == 0 or len(receiver_cap) == 0:
-                    print(f"The number of rsu or obu packets specified in the protocol is zero.\tfiles name : {rsu.get_csv_file_name()}, {obu.get_csv_file_name()}")
+                    print(f"The number of RSU or OBU packets specified in the protocol is zero.\tfiles name: {rsu.get_csv_file_name()}, {obu.get_csv_file_name()}")
                     continue
-
+                
                 obu_rsu_network_status_class = NetworkStatus(rsu_station_id, obu_id, sender_cap, receiver_cap, dm_protocol)
 
-                # adding network status object to rsu object
+                # Add network status object to RSU object
                 rsu.append_network_status(obu_rsu_network_status_class)
 
-                # /obu_#/rsu_#/network_status topic generating
+                # /OBU_#/RSU_#/network_status topic generating
                 netstat_topic = obu_rsu_network_status_class.get_topic(
                     dm_protocol + "/" + Conf.network_status_topic_name_syntax)
                 ros2type_network_status_list = obu_rsu_network_status_class.get_ros2type_network_status_list()

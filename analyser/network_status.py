@@ -25,10 +25,15 @@ class NetworkStatus:
     rsu_position_x: float
     rsu_position_y: float
 
-    dm_protoco_type: str
+    dm_protocol_type: str
 
-    def __init__(self, sender_station_id: str, receiver_station_id: str, sender_packets: list, receiver_packets: list,
-                 dm_protocol_type: str):
+    def __init__(
+            self,
+            sender_station_id: str,
+            receiver_station_id: str,
+            sender_packets: list,
+            receiver_packets: list,
+            dm_protocol_type: str):
         """
 
         :param sender_station_id:
@@ -46,23 +51,24 @@ class NetworkStatus:
 
         self.receiver_station_id = receiver_station_id
 
-        self.dm_protoco_type = dm_protocol_type
+        self.dm_protocol_type = dm_protocol_type
 
-        # converting position of rus in x,y and getting that
+        # converting position of RSU in x,y and getting that
         # self.rsu_position_x, self.rsu_position_y = dm_interface.get_rsu_position_in_xy(sender_packets[0])
         print(type(self.sender_station_id))
         print(sender_station_id)
-        rsu_position = Conf.rsu_xy_positions[str(self.sender_station_id)]
+        rsu_position = Conf.rsu_info[str(self.sender_station_id)]["xy"]
         self.rsu_position_x, self.rsu_position_y = rsu_position[0], rsu_position[1]
 
-        self.pair_packet_list_with_delay = self.get_pair_packt_list_with_delay()
+        self.pair_packet_list_with_delay = self.get_pair_pkt_list_with_delay()
 
         # self.jitter_list = self.measuring_jitter_rfc3550() # todo : this is not completed
 
         # self.rssi_list = self.measuring_rssi()  # todo : this is not completed
 
-        self.position_netstat_dict = NetworkStatus.creating_position_netstat_dict(self.pair_packet_list_with_delay,
-                                                                                  self.receiver_station_id)
+        self.position_netstat_dict = NetworkStatus.create_position_netstat_dict(
+            self.pair_packet_list_with_delay,
+            self.receiver_station_id)
 
         # self.delete_far_packets()  # todo: uncomment this when tf messages do not exist
 
@@ -70,9 +76,9 @@ class NetworkStatus:
 
         self.plotter = Plotter(self.get_plots_directory())
 
-        self.network_status_list: List[netstat] = self.creating_ros2type_network_status()
-
-        self.cpmn_list = self.creating_ros2type_dmn()
+        self.network_status_list: List[netstat] = self.create_ros2_type_network_status()
+        # Up to here
+        self.dmn_list = self.create_ros2_type_dmn()
 
         # if Conf.position_reporter: # todo : uncomment this two line when you have tf messages
         self.plotting_position_graphs()
@@ -98,7 +104,7 @@ class NetworkStatus:
         this method return name of plots directory , address is in path_to_output/output/graphs/plots_directory_name
         :return:
         """
-        plots_directory_name = f'RSU_{self.sender_station_id}_OBU_{self.receiver_station_id}_{self.dm_protoco_type}'
+        plots_directory_name = f'RSU_{self.sender_station_id}_OBU_{self.receiver_station_id}_{self.dm_protocol_type}'
 
         return plots_directory_name
 
@@ -114,7 +120,7 @@ class NetworkStatus:
                                         receiver_pkts_len)
         return pair_packet_list
 
-    def get_pair_packt_list_with_delay(self):
+    def get_pair_pkt_list_with_delay(self):
         """
 
         :return: pair packet list with delay
@@ -134,14 +140,14 @@ class NetworkStatus:
         return self.network_status_list
 
     def get_ros2type_cpmn_list(self):
-        return self.cpmn_list
+        return self.dmn_list
 
-    def creating_ros2type_dmn(self):
+    def create_ros2_type_dmn(self):
         """
 
         :return:
         """
-        ros2type_dmn_list = []
+        ros2_type_dmn_list = []
 
         for pair in self.pair_packet_list_with_delay:
             send_packet = pair[0]
@@ -152,7 +158,7 @@ class NetworkStatus:
 
             dm = DMCsvMessage(send_packet, dm_interface.get_timestamp(send_packet, True)).ros_csv_dm_message
 
-            network_status = NetworkStatus.creating_ros2type_network_status_per_packet(rec_packet, send_packet, delay)
+            network_status = NetworkStatus.create_ros2_type_network_status_per_packet(rec_packet, send_packet, delay)
 
             # tf_message = self.position_netstat_dict[
             #     cpm_interface.get_generationdeltatime(send_packet, False)].tf_message  # todo : uncomment above when tf messages exist
@@ -161,9 +167,9 @@ class NetworkStatus:
 
             msg_info = [dm_interface.get_epochtime(send_packet), dmn_msg]
 
-            ros2type_dmn_list.append(msg_info)
+            ros2_type_dmn_list.append(msg_info)
 
-        return ros2type_dmn_list
+        return ros2_type_dmn_list
 
     def measuring_jitter_rfc3550(self) -> list:
         """
@@ -367,7 +373,7 @@ class NetworkStatus:
             # getting position of rsu
             rsu_pkt = pair[0]
             # rsu_position = dm_interface.get_rsu_position_in_xy(rsu_pkt)
-            rsu_position = Conf.rsu_xy_positions[str(self.sender_station_id)]
+            rsu_position = Conf.rsu_info[str(self.sender_station_id)]["xy"]
 
             # getting position of obu
             key = dm_interface.get_timestamp(rsu_pkt, True)
@@ -426,7 +432,7 @@ class NetworkStatus:
         return jitter
 
     @staticmethod
-    def creating_ros2type_network_status_per_packet(rec_pkt, send_pkt, delay: float = None):
+    def create_ros2_type_network_status_per_packet(rec_pkt, send_pkt, delay: float = None):
         """
         this function creating network status ros2 type for just one packet
         :param delay:
@@ -461,7 +467,7 @@ class NetworkStatus:
         return netstat(stamp=builtin_epochtime, delay=delay, jitter=jitter, rssi=rssi,
                        packet_loss=packet_loss, packet_count=1)
 
-    def creating_ros2type_network_status(self) -> List[netstat]:
+    def create_ros2_type_network_status(self) -> List[netstat]:
         """
         1.creating some dictionary like { sec value 1 : [ delay0 (in sec value) , ... , delay(n) ] , ... }
         2.crating network status list like : [ [ epochtime average,netstat ] , ... ]
@@ -650,7 +656,7 @@ class NetworkStatus:
                             "RSSI x Time  ( per " + str(Conf.network_status_time) + " second ) "+str(plotter.plots_directory_name))
 
     # @staticmethod
-    # def creating_position_netstat_dict(pair_pkts_list, obu_station_id):
+    # def create_position_netstat_dict(pair_pkts_list, obu_station_id):
     #     """
     #     todo : The changes of this function should be deleted and returned to its original state
     #     this function creating position reporter
@@ -730,7 +736,7 @@ class NetworkStatus:
     #     return position_netstat_dict
 
     @staticmethod
-    def creating_position_netstat_dict(pair_pkts_list, obu_station_id):
+    def create_position_netstat_dict(pair_pkts_list, obu_station_id):
         """
         this function creating position reporter
         :param pair_pkts_list:
@@ -738,40 +744,29 @@ class NetworkStatus:
         :return:
         """
 
-        #
-        #
-        # finding obu ros2 file with obu_station_id
+        # Find OBU ROSBAG file with obu_station_id
         obu_ros2_file_address = Conf.ros2_files_directory + "/OBU_" + obu_station_id
 
-        #
-        #
-        # dictionary with key = (message stamp time) and value = tf message
+        # Dictionary with key = (message stamp time) and value = tf message
         tf_messages = tf_type_reader(rosbag_folder_path=obu_ros2_file_address)
 
-        #
-        #
-        # this dictionary holding network status of each position with key=time and value PositionNetworkStatus class
+        # This dictionary holds network status of each position with key=time and value PositionNetworkStatus class
         position_netstat_dict = {}
 
         for pair in pair_pkts_list:
 
-            # getting key of position netstat dictionary( key is generation time of rsu packet)
-            # key = dm_interface.get_generationdeltatime(pair[0], False) # this is for cpm avvv
-            key = dm_interface.get_timestamp(pair[0], True)
+            # Get key of position netstat dictionary (key is generation time of RSU packet)
+            key = dm_interface.get_generation_time(pair[0])
 
-            #
-            # getting time of packet ( it is time of receiver (obu) except when we have packet loss )
+            # Get time of packet (it is time of receiver OBU except when we have packet loss)
             if pair[1] is None:
-                pkt_time = dm_interface.get_epochtime(pair[0])
+                pkt_time = dm_interface.get_generation_time(pair[0])
             else:
                 pkt_time = dm_interface.get_epochtime(pair[1])
 
             pkt_time *= 1e+6 # Convert to ns from ms
 
-            # pkt_time = cpm_interface.get_epochtime(pair[0]) # todo: another formula
-
-            #
-            # finding the closest time in tf messages to time of packet
+            # Find the closest time in TF messages to time of packet
             temp_min = Conf.max_difference_time_for_equivalent_tf_message
 
             for tf_message_time in tf_messages:
@@ -783,14 +778,13 @@ class NetworkStatus:
                     temp_min = abs(pkt_time - tf_message_time)
 
             try:
-                position_netstat_dict[key] = PositionNetworkStatus(rsu_packet, obu_packet, tf_message, delay)
-                # print(f"Found some temp_min: {temp_min}, {key}")
+                position_netstat_dict[key] = PositionNetworkStatus(
+                    rsu_packet,
+                    obu_packet,
+                    tf_message,
+                    delay)
             except:
                 print("this packet has no message on tf topic")
-
-        print()
-        print(f"Len position_netstat_dict: {len(position_netstat_dict)}")
-        print()
 
         return position_netstat_dict
 

@@ -114,7 +114,7 @@ class Conf:
         Conf.ros2_topics = json.loads(configur.get('ros2', 'topics'))
 
         # reading rsu xy positions
-        Conf.rsu_xy_positions = json.loads(configur.get('rsus', 'rsu_xy_positions'))
+        Conf.rsu_info = json.loads(configur.get('rsus', 'rsu_info'))
 
         # reading information about output file
         Conf.report_output_directory_address = json.loads(configur.get('output', 'report_output_address'))
