@@ -1,24 +1,26 @@
 """
-This module creates ros2 messages
+This module creates ROS2 messages
 """
 from rosbags.typesys.types import builtin_interfaces__msg__Time as builtin_time
 
 # dm_object_info_msgs
 from rosbags.typesys.types import dm_object_info_msgs__msg__ObjectInfoArray as ObjectInfoArray
-from rosbags.typesys.types import dm_network_info_msgs__msg__ObjectInfo as ObjectInfoMsg
+from rosbags.typesys.types import dm_object_info_msgs__msg__ObjectInfo as ObjectInfoMsg
 from rosbags.typesys.types import dm_object_info_msgs__msg__ObjectClass as ObjectClass
 
 # dm_signal_info_msgs
 from rosbags.typesys.types import dm_signal_info_msgs__msg__SignalInfoArray as SignalInfoArray
-from rosbags.typesys.types import dm_network_info_msgs__msg__SignalInfo as SignalInfoMsg
-from rosbags.typesys.types import dm_network_info_msgs__msg__SignalId as SignalId
-from rosbags.typesys.types import dm_network_info_msgs__msg__SignalLightInfo as SignalLightInfo
+from rosbags.typesys.types import dm_signal_info_msgs__msg__SignalInfo as SignalInfoMsg
+from rosbags.typesys.types import dm_signal_info_msgs__msg__SignalId as SignalId
+from rosbags.typesys.types import dm_signal_info_msgs__msg__SignalLightInfo as SignalLightInfo
 
+# dm_freespace_info_msgs
+from rosbags.typesys.types import dm_freespace_info_msgs__msg__FreespaceInfoArray as FreespaceInfoArray
+from rosbags.typesys.types import dm_freespace_info_msgs__msg__FreespaceInfo as FreespaceInfoMsg
 
 # dm_network_info_msgs
 from rosbags.typesys.types import dm_network_info_msgs__msg__NetworkStatus as NetworkStatusMsg
 from rosbags.typesys.types import dm_network_info_msgs__msg__ObjectInfoN as ObjectInfoNMsg
-from rosbags.typesys.types import dm_network_info_msgs__msg__FreespaceInfo as FreespaceInfoMsg
 from rosbags.typesys.types import dm_network_info_msgs__msg__FreespaceInfoN as FreespaceInfoNMsg
 from rosbags.typesys.types import dm_network_info_msgs__msg__SignalInfoN as SignalInfoNMsg
 from datetime import datetime
@@ -117,3 +119,30 @@ class SignalInfo:
     def create_signal_info_array(signal_infos: list[SignalInfoMsg]) -> SignalInfoArray:
         signal_info_array = SignalInfoArray(array=signal_infos)
         return signal_info_array
+    
+
+class FreespaceInfo:
+    def __init__(self, csv_row, time_stamp):
+        self.csv_row = csv_row
+        self.ros_time_stamp = TimeStamp(time_stamp).ros_time_stamp
+        self.__build_msg()
+    
+    def __build_msg(self):
+        self.msg = FreespaceInfoMsg()
+        self.msg.id.value = dm_interface.get_object_id(self.csv_row)
+        self.msg.time.value = dm_interface.get_object_timestamp_its(self.csv_row)
+        position_begin = dm_interface.get_freespace_position_begin(self.csv_row)
+        position_end = dm_interface.get_freespace_position_end(self.csv_row)
+        self.msg.position_begin.geodetic_system.value = position_begin[0]
+        self.msg.position_begin.latitude.value = position_begin[1]
+        self.msg.position_begin.longitude.value = position_begin[2]
+        self.msg.position_begin.altitude.value = position_begin[3]
+        self.msg.position_end.geodetic_system.value = position_end[0]
+        self.msg.position_end.latitude.value = position_end[1]
+        self.msg.position_end.longitude.value = position_end[2]
+        self.msg.position_end.altitude.value = position_end[3]
+
+    @staticmethod
+    def create_freespace_info_array(freespace_infos: list[FreespaceInfoMsg]) -> FreespaceInfoArray:
+        freespace_info_array = FreespaceInfoArray(array=freespace_infos)
+        return freespace_info_array

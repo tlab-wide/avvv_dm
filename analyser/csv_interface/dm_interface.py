@@ -25,7 +25,7 @@ def get_object_class_confidence(dataframe_row) -> int:
     return int(dataframe_row[3])
 
 
-def get_class_existence_confidence(dataframe_row) -> int:
+def get_existence_confidence(dataframe_row) -> int:
     return int(dataframe_row[18])
 
 
@@ -111,6 +111,14 @@ def get_object_information_source_list(dataframe_row) -> int:
     list of the sensor that sent this DM message
     """
     return dataframe_row[77]
+
+
+def get_freespace_position_begin(dataframe_row) -> tuple[int]:
+    return dataframe_row[4], dataframe_row[5], dataframe_row[6], dataframe_row[7]
+
+
+def get_freespace_position_end(dataframe_row) -> tuple[int]:
+    return dataframe_row[26], dataframe_row[27], dataframe_row[28], dataframe_row[29]
 
 
 def get_freespace_information_source_list(dataframe_row) -> int:

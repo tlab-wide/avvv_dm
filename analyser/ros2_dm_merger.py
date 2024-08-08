@@ -35,10 +35,10 @@ def dm_merger() -> None:
                 rsu_files, obu_files = Conf.signal_rsu_files, Conf.signal_obu_files
 
         except Exception as e:
-            raise f"Can't read RSU or OBU files. Error message:{str(e)}"
+            raise Exception(f"Can't read RSU or OBU files. Error message:{str(e)}")
 
         if len(rsu_files) == 0 or len(obu_files) == 0:
-            raise "RSU or OBU files not found in config file!"
+            raise Exception("RSU or OBU files not found in config file!")
 
         # Read CSV files and create RSU and OBU objects
         nodes_manager = NodesManager(obu_files, rsu_files)  # TODO Add empty CSV exception (when CSV is empty we get error)
@@ -46,8 +46,7 @@ def dm_merger() -> None:
         # Create /RSU_#/[dm_protocol] topics in final ROSBAG
         for rsu in nodes_manager.get_rsu_nodes():
             rsu.set_dm_protocol_type(dm_protocol)
-
-            topic, rsu_dm_msgs = rsu.get_csv_dm_info() # TODO: Complete method
+            topic, rsu_dm_msgs = rsu.get_csv_dm_info() # TODO Complete method
             dm_dict_information[topic] = rsu_dm_msgs
 
         # Create /OBU_#/RSU_#/network_status and /OBU_#/RSU_#/[dm_protocol] topics in final ROSBAG
