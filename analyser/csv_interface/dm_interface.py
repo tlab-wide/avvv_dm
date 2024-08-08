@@ -17,6 +17,45 @@ def get_object_timestamp_its(dataframe_row) -> int:
     return int(dataframe_row[1])
 
 
+def get_object_class_id(dataframe_row) -> int:
+    return int(dataframe_row[2])
+
+
+def get_object_class_confidence(dataframe_row) -> int:
+    return int(dataframe_row[3])
+
+
+def get_class_existence_confidence(dataframe_row) -> int:
+    return int(dataframe_row[18])
+
+
+def get_object_geodetic_system(dataframe_row) -> int:
+    return int(dataframe_row[19])
+
+
+def get_object_latitude(dataframe_row) -> int:
+    return int(dataframe_row[20])
+
+
+def get_object_longitude(dataframe_row) -> int:
+    return int(dataframe_row[21])
+
+
+def get_object_altitude(dataframe_row) -> int:
+    return int(dataframe_row[22])
+
+
+def get_object_orientation(dataframe_row) -> int:
+    return int(dataframe_row[50])
+
+
+def get_object_size(dataframe_row) -> tuple[int]:
+    """
+    Return the object size as a tuple (length, width, height)
+    """
+    return int(dataframe_row[52]), int(dataframe_row[54]), int(dataframe_row[56])
+
+
 def get_signal_crp_id(dataframe_row) -> int:
     """
     This function gets each (signal_info) dataframe row of
@@ -25,12 +64,14 @@ def get_signal_crp_id(dataframe_row) -> int:
     return dataframe_row[0]
 
 
-def get_signal_beacon_id(dataframe_row) -> int:
+def get_signal_beacon_id(dataframe_row) -> list[int]:
     """
     This function gets each (signal_info) dataframe row of
     RSU or OBU and returns object ID in it
     """
-    return dataframe_row[1]
+    beacon_id_list = dataframe_row[1].split(",")
+    beacon_id_list.pop(-1) # Remove the last one that always occurs empty and redundant
+    return list(map(int, beacon_id_list))
 
 
 def get_signal_timestamp_its(dataframe_row) -> int:
@@ -40,6 +81,13 @@ def get_signal_timestamp_its(dataframe_row) -> int:
     """
     return int(dataframe_row[2])
 
+
+def get_signal_light_info(dataframe_row) -> tuple[int]:
+    """
+    Return the first light information as tuple
+    (main_light, arrow_light, min_time_to_change, max_time_to_change)
+    """
+    return dataframe_row[7], dataframe_row[8], dataframe_row[9], dataframe_row[10]
 
 def get_generation_time(dataframe_row) -> int:
     """
