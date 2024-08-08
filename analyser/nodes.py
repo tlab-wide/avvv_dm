@@ -9,7 +9,7 @@ from network_status import NetworkStatus
 from analyser.config_avvv import Conf
 from plotting import Plotter
 from csv_interface import csv_general_tools, dm_interface
-from ros2_interface.ros2msg_gen import DMCsvMessage
+from ros2_interface.ros2msg_gen import ObjectInfo, SignalInfo, FreespaceInfo
 
 
 class Node(ABC):
@@ -86,11 +86,25 @@ class RSU(Node):
         :return:
         """
         topic = self.get_topic_name()
+        
+        match self._dm_protocol_type:
+            case "ObjectInfo":
+                DMMessage = ObjectInfo
+            case "SignalInfo":
+                DMMessage = SignalInfo
+            case "FreespaceInfo":
+                DMMessage = FreespaceInfo
+            case _:
+                raise Exception("Protocol not specified when getting rows")
+
         msg_infos = []
         for csv_row in self._csv_rows:
             dm_csv_row_message_time_stamp = dm_interface.get_epochtime(csv_row)
-            msg_info = [dm_csv_row_message_time_stamp,
-                        DMCsvMessage(csv_row, dm_csv_row_message_time_stamp).ros_csv_dm_message] # TODO: Build up the real DM messages
+            msg_info = [
+                dm_csv_row_message_time_stamp,
+                DMMessage(
+                    csv_row,
+                    dm_csv_row_message_time_stamp).ros_csv_dm_message]
             msg_infos.append(msg_info)
 
         return topic, msg_infos
@@ -176,17 +190,18 @@ class OBU(Node):
         This method returns CSV rows of this OBU by RSU ID
         """
         
-        if self._dm_protocol_type == "ObjectInfo":
-            get_rsu_indicator = dm_interface.get_object_information_source_list
-            rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
-        elif self._dm_protocol_type == "FreespaceInfo":
-            get_rsu_indicator = dm_interface.get_freespace_information_source_list
-            rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
-        elif self._dm_protocol_type == "SignalInfo":
-            get_rsu_indicator = dm_interface.get_signal_crp_id
-            rsu_indicator = Conf.rsu_info[str(rsu_id)]["crp_id"]
-        else:
-            raise Exception("Protocol not specified when getting rows by RSU ID")
+        match self._dm_protocol_type:
+            case "ObjectInfo":
+                get_rsu_indicator = dm_interface.get_object_information_source_list
+                rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
+            case "FreespaceInfo":
+                get_rsu_indicator = dm_interface.get_freespace_information_source_list
+                rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
+            case "SignalInfo":
+                get_rsu_indicator = dm_interface.get_signal_crp_id
+                rsu_indicator = Conf.rsu_info[str(rsu_id)]["crp_id"]
+            case _:
+                raise Exception("Protocol not specified when getting rows by RSU ID")
         
         output_list = []
         for csv_row in self.get_csv_rows():

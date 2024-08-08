@@ -29,10 +29,13 @@ def dm_merger() -> None:
         try:
             if dm_protocol == "FreespaceInfo":
                 rsu_files, obu_files = Conf.freeSpace_rsu_files, Conf.freeSpace_obu_files
+                topic_syntax = "freespace_info"
             if dm_protocol == "ObjectInfo":
                 rsu_files, obu_files = Conf.object_rsu_files, Conf.object_obu_files
+                topic_syntax = "object_info"
             if dm_protocol == "SignalInfo":
                 rsu_files, obu_files = Conf.signal_rsu_files, Conf.signal_obu_files
+                topic_syntax = "signal_info"
 
         except Exception as e:
             raise Exception(f"Can't read RSU or OBU files. Error message:{str(e)}")
@@ -46,10 +49,10 @@ def dm_merger() -> None:
         # Create /RSU_#/[dm_protocol] topics in final ROSBAG
         for rsu in nodes_manager.get_rsu_nodes():
             rsu.set_dm_protocol_type(dm_protocol)
-            topic, rsu_dm_msgs = rsu.get_csv_dm_info() # TODO Complete method
+            topic, rsu_dm_msgs = rsu.get_csv_dm_info()
             dm_dict_information[topic] = rsu_dm_msgs
 
-        # Create /OBU_#/RSU_#/network_status and /OBU_#/RSU_#/[dm_protocol] topics in final ROSBAG
+        # Create /OBU_#/RSU_#/network_status and /OBU_#/RSU_#/[dm_protocol]n topics in final ROSBAG
         for obu in nodes_manager.get_obu_nodes():
             obu.set_dm_protocol_type(dm_protocol)
             for rsu in nodes_manager.get_rsu_nodes():
@@ -67,14 +70,14 @@ def dm_merger() -> None:
                 # Add network status object to RSU object
                 rsu.append_network_status(obu_rsu_network_status_class)
 
-                # /OBU_#/RSU_#/network_status topic generating
+                # Generate /OBU_#/RSU_#/[dm_protocol]/network_status topic
                 netstat_topic = obu_rsu_network_status_class.get_topic(
-                    dm_protocol + "/" + Conf.network_status_topic_name_syntax)
+                    topic_syntax + "/" + Conf.network_status_topic_name_syntax)
                 ros2type_network_status_list = obu_rsu_network_status_class.get_ros2type_network_status_list()
                 dm_dict_information[netstat_topic] = ros2type_network_status_list
 
-                # /obu_#/rsu_#/cpmn topic generating
-                cpmn_topic = obu_rsu_network_status_class.get_topic(dm_protocol + "/dmn")
+                # Generate /OBU_#/RSU_#/[dm_protocol]n topic
+                cpmn_topic = obu_rsu_network_status_class.get_topic(f"{dm_protocol}n")
                 ros2type_cpmn_list = obu_rsu_network_status_class.get_ros2type_cpmn_list()
                 dm_dict_information[cpmn_topic] = ros2type_cpmn_list
 

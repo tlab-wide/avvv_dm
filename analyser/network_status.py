@@ -476,22 +476,16 @@ class NetworkStatus:
         # this is first packet time (send time)
         first_pkt_time = dm_interface.get_epochtime(self.pair_packet_list_with_delay[0][0])
 
-        #
-        #
-        #
-        # key's are sec times and values are list of delays on that time
+        # Keys are sec times and values are list of delays on that time
         network_status_delay_dict = {}
 
-        # key's are sec times and values are list of epochtimes
+        # Keys are sec times and values are list of epochtimes
         network_status_epochtime_dict = {}
 
-        # key's are sec times and values are packet loss
+        # Keys are sec times and values are packet loss
         network_status_packetloss_dict = {}
 
-        #
-        #
-        #
-        # iteration per pair packets list and adding information to dictionaries
+        # Iteration per pair packets list and adding information to dictionaries
         for pair in self.pair_packet_list_with_delay:
 
             sender_epochtime = dm_interface.get_epochtime(pair[0])  # epoch time of sender packet
@@ -507,7 +501,7 @@ class NetworkStatus:
             except:
                 network_status_epochtime_dict[key] = [sender_epochtime]
 
-            if pair[1] is None:  # if we have no delay time . ( we have packet loss )
+            if pair[1] is None:  # if we have no delay time (we have packet loss)
                 try:
                     network_status_packetloss_dict[key].append(1)
                 except:
@@ -524,14 +518,10 @@ class NetworkStatus:
                 except:
                     network_status_delay_dict[key] = [delay]
 
-        #
-        #
-        #
-        # creating network status list ( list : [ [epochtime,netstat()] .... ] )
+        # Create network status list (list : [ [epochtime,netstat()] .... ])
         network_status_list = []
-        #
-        #
-        # initialization lists for plotting
+        
+        # Initialise lists for plotting
         delay_list = []
         pkt_loss_list = []
         jitter_list = []
@@ -540,10 +530,7 @@ class NetworkStatus:
         epoch_time_avg_list = []
 
         for key in network_status_epochtime_dict.keys():
-
-            #
-            #
-            # defining variables
+            # Define variables
             epochtime_avg: float
             packet_loss_avg: float
             delay_avg: float
@@ -551,9 +538,7 @@ class NetworkStatus:
             rssi: int = 255
             packet_count: int
 
-            #
-            #
-            # initialization of variables
+            # Initialise variables
             epochtime_avg = np.average(network_status_epochtime_dict[key])
             packet_loss_avg = round(np.average(network_status_packetloss_dict[key]), 4)
             packet_count = len(network_status_epochtime_dict[key])
@@ -573,16 +558,20 @@ class NetworkStatus:
             nanoseconds = microseconds * 1000
             builtin_epochtime = builtin_time(sec=int(seconds), nanosec=int(nanoseconds))
 
-            #
-            #
-            # adding to output list
-            network_status_list.append([epochtime_avg,
-                                        netstat(stamp=builtin_epochtime, delay=delay_avg, jitter=jitter, rssi=rssi,
-                                                packet_loss=packet_loss_avg, packet_count=packet_count)])
+            # Add to output list
+            network_status_list.append(
+                [
+                    epochtime_avg,
+                    netstat(
+                        stamp=builtin_epochtime,
+                        delay=delay_avg,
+                        jitter=jitter,
+                        rssi=rssi,
+                        packet_loss=packet_loss_avg,
+                        packet_count=packet_count)
+                ])
 
-            #
-            #
-            # plotting lists
+            # Plot lists
             if Conf.time_reporter:
                 delay_list.append(delay_avg)
                 jitter_list.append(jitter)
@@ -591,7 +580,7 @@ class NetworkStatus:
                 packet_count_list.append(packet_count)
                 epoch_time_avg_list.append(epochtime_avg)
 
-        # plotting
+        # Plot
         if Conf.time_reporter:
             self.draw_network_status(Conf.network_status_time, delay_list, jitter_list, pkt_loss_list,
                                      rssi_list,
