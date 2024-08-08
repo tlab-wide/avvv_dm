@@ -77,9 +77,9 @@ def dm_merger() -> None:
                 dm_dict_information[netstat_topic] = ros2type_network_status_list
 
                 # Generate /OBU_#/RSU_#/[dm_protocol]n topic
-                cpmn_topic = obu_rsu_network_status_class.get_topic(f"{dm_protocol}n")
-                ros2type_cpmn_list = obu_rsu_network_status_class.get_ros2type_cpmn_list()
-                dm_dict_information[cpmn_topic] = ros2type_cpmn_list
+                dmn_topic = obu_rsu_network_status_class.get_topic(f"{dm_protocol}n")
+                ros2type_dmn_list = obu_rsu_network_status_class.get_ros2type_dmn_list()
+                dm_dict_information[dmn_topic] = ros2type_dmn_list
 
     # ROSBAG topics
     ros_dict_information = topics.collect_topics_from_rosbag2_file(Conf.ros2_files_path, Conf.ros2_topics,

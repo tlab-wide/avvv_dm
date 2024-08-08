@@ -139,7 +139,7 @@ class NetworkStatus:
         """
         return self.network_status_list
 
-    def get_ros2type_cpmn_list(self):
+    def get_ros2type_dmn_list(self):
         return self.dmn_list
 
     def create_ros2_type_dmn(self):
