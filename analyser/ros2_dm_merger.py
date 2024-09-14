@@ -28,7 +28,7 @@ def dm_merger() -> None:
     for dm_protocol in dm_protocols:
         try:
             if dm_protocol == "FreespaceInfo":
-                rsu_files, obu_files = Conf.freeSpace_rsu_files, Conf.freeSpace_obu_files
+                rsu_files, obu_files = Conf.freespace_rsu_files, Conf.freespace_obu_files
                 topic_syntax = "freespace_info"
             if dm_protocol == "ObjectInfo":
                 rsu_files, obu_files = Conf.object_rsu_files, Conf.object_obu_files
@@ -62,7 +62,7 @@ def dm_merger() -> None:
                 receiver_cap = obu.get_obu_csv_rows_by_rsu_id(rsu_station_id)
 
                 if len(sender_cap) == 0 or len(receiver_cap) == 0:
-                    print(f"The number of RSU or OBU packets specified in the protocol is zero.\tfiles name: {rsu.get_csv_file_name()}, {obu.get_csv_file_name()}")
+                    print(f"The number of RSU or OBU packets specified in the protocol is zero. File names: {rsu.get_csv_file_name()}, {obu.get_csv_file_name()}")
                     continue
                 
                 obu_rsu_network_status_class = NetworkStatus(rsu_station_id, obu_id, sender_cap, receiver_cap, dm_protocol)
