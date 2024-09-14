@@ -19,4 +19,4 @@ def read_csv_file(csv_file_path: Path) -> pandas.DataFrame:
     """
     df = pandas.read_csv(csv_file_path, header=None, on_bad_lines="skip")
 
-    return df.itertuples(index=False)
+    return df
