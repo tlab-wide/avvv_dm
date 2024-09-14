@@ -2,7 +2,7 @@ from abc import ABC
 from typing import List, Iterable
 from pathlib import Path
 
-from pandas.core.frame import _PandasNamedTuple
+import pandas
 
 from general_tools import creating_directory, merge_dicts, extract_id_from_csv_file_name
 from network_status import NetworkStatus
@@ -23,7 +23,7 @@ class Node(ABC):
         self._csv_rows = self.__read_csv_file()
         self._dm_protocol_type = None
 
-    def __read_csv_file(self) -> Iterable[_PandasNamedTuple]:
+    def __read_csv_file(self) -> pandas.DataFrame:
         """
         This function reading csv file and returning list of csv rows
         """
@@ -41,7 +41,7 @@ class Node(ABC):
         except Exception as e:
             raise f"Can't get the station id of {self.get_csv_file_name()}. Error message: {e}"
         
-    def get_csv_rows(self) -> Iterable[_PandasNamedTuple]:
+    def get_csv_rows(self) -> pandas.DataFrame:
         return self._csv_rows
 
     def get_csv_file_name(self) -> str:
@@ -89,22 +89,34 @@ class RSU(Node):
         
         match self._dm_protocol_type:
             case "ObjectInfo":
-                DMMessage = ObjectInfo
+                dm_message = ObjectInfo
+                create_dm_message_array = ObjectInfo.create_object_info_array
             case "SignalInfo":
-                DMMessage = SignalInfo
+                dm_message = SignalInfo
+                create_dm_message_array = SignalInfo.create_signal_info_array
             case "FreespaceInfo":
-                DMMessage = FreespaceInfo
+                dm_message = FreespaceInfo
+                create_dm_message_array = FreespaceInfo.create_freespace_info_array
             case _:
                 raise Exception("Protocol not specified when getting rows")
 
         msg_infos = []
-        for csv_row in self._csv_rows:
-            dm_csv_row_message_time_stamp = dm_interface.get_epochtime(csv_row)
+        row_length = self._csv_rows.shape[1]
+        generation_time_column = row_length - 2
+        packet_message_groups = self._csv_rows.groupby(by=generation_time_column).groups
+        
+        for _, indices in packet_message_groups.items():
+            dm_csv_row_message_time_stamp = dm_interface.get_epochtime(
+                self._csv_rows.loc[indices[0]], row_length)
+        
+            dm_message_array = create_dm_message_array([
+                dm_message(self._csv_rows.loc[index])
+                for index in indices])
+
             msg_info = [
                 dm_csv_row_message_time_stamp,
-                DMMessage(
-                    csv_row,
-                    dm_csv_row_message_time_stamp).ros_csv_dm_message]
+                dm_message_array]
+        
             msg_infos.append(msg_info)
 
         return topic, msg_infos
@@ -185,30 +197,28 @@ class OBU(Node):
         """
         return self._its_station_id
 
-    def get_obu_csv_rows_by_rsu_id(self, rsu_id: int) -> List:
+    def get_obu_csv_rows_by_rsu_id(self, rsu_id: int) -> pandas.DataFrame:
         """
         This method returns CSV rows of this OBU by RSU ID
         """
         
         match self._dm_protocol_type:
             case "ObjectInfo":
-                get_rsu_indicator = dm_interface.get_object_information_source_list
+                rsu_indicator_column = dm_interface.get_object_information_source_list_column()
                 rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
             case "FreespaceInfo":
-                get_rsu_indicator = dm_interface.get_freespace_information_source_list
+                rsu_indicator_column = dm_interface.get_freespace_information_source_list_column()
                 rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
             case "SignalInfo":
-                get_rsu_indicator = dm_interface.get_signal_crp_id
+                rsu_indicator_column = dm_interface.get_signal_crp_id_column()
                 rsu_indicator = Conf.rsu_info[str(rsu_id)]["crp_id"]
             case _:
                 raise Exception("Protocol not specified when getting rows by RSU ID")
         
-        output_list = []
-        for csv_row in self.get_csv_rows():
-            if get_rsu_indicator(csv_row) in rsu_indicator:
-                output_list.append(csv_row)
-        return output_list
-
+        packet_message_groups = self._csv_rows.groupby(by=rsu_indicator_column).groups
+        
+        return self._csv_rows.loc[packet_message_groups[rsu_indicator]]
+        
 
 class NodesManager:
     """
