@@ -65,9 +65,8 @@ class NetworkStatus:
 
 
 class ObjectInfo:
-    def __init__(self, csv_row, time_stamp):
+    def __init__(self, csv_row):
         self.csv_row = csv_row
-        self.ros_time_stamp = TimeStamp(time_stamp).ros_time_stamp
         self.__build_msg()
     
     def __build_msg(self):
@@ -96,9 +95,8 @@ class ObjectInfo:
 
 
 class SignalInfo:
-    def __init__(self, csv_row, time_stamp):
+    def __init__(self, csv_row):
         self.csv_row = csv_row
-        self.ros_time_stamp = TimeStamp(time_stamp).ros_time_stamp
         self.__build_msg()
     
     def __build_msg(self):
@@ -122,9 +120,8 @@ class SignalInfo:
     
 
 class FreespaceInfo:
-    def __init__(self, csv_row, time_stamp):
+    def __init__(self, csv_row):
         self.csv_row = csv_row
-        self.ros_time_stamp = TimeStamp(time_stamp).ros_time_stamp
         self.__build_msg()
     
     def __build_msg(self):
