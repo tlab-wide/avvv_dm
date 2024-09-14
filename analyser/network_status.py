@@ -44,19 +44,11 @@ class NetworkStatus:
         """
 
         self.sender_packets = sender_packets
-
         self.receiver_packets = receiver_packets
-
         self.sender_station_id = sender_station_id
-
         self.receiver_station_id = receiver_station_id
-
         self.dm_protocol_type = dm_protocol_type
 
-        # converting position of RSU in x,y and getting that
-        # self.rsu_position_x, self.rsu_position_y = dm_interface.get_rsu_position_in_xy(sender_packets[0])
-        print(type(self.sender_station_id))
-        print(sender_station_id)
         rsu_position = Conf.rsu_info[str(self.sender_station_id)]["xy"]
         self.rsu_position_x, self.rsu_position_y = rsu_position[0], rsu_position[1]
 
@@ -109,17 +101,46 @@ class NetworkStatus:
         return plots_directory_name
 
     def get_pair_packet_list(self):
+
+        """
+        Pairs up corresponding packets on the sender and receiver sides
+        :return: 2d list . example : [ [sender_pkt1,receiver_pkt1],...,[sender_pkt(n),receiver_pkt(n)] ]
         """
 
-        :return: pair packet list withot delay
-        """
-        sender_pkts_len = len(self.sender_packets)
-        receiver_pkts_len = len(self.receiver_packets)
+        send_cap = self.sender_packets
+        rec_cap = self.receiver_packets
+        pair_corresponding_pkts = []
 
-        pair_packet_list = pair_packets(self.sender_packets, self.receiver_packets, sender_pkts_len,
-                                        receiver_pkts_len)
-        return pair_packet_list
+        # temporary dictionary for holding received packets
+        rec_pkt_dict: dict = {}
+        for index in range(rec_cap_len):
+            key = dm_interface.get_id(rec_cap[index], is_rsu=False)
+            if key not in rec_pkt_dict.keys():
+                rec_pkt_dict[key] = rec_cap[index]
+            else:
+                print("There are some packets with the same Rsu StationID and packet ID in the packets")
+                # raise ValueError("There are some packets with the same Rsu StationID and packet ID in the packets")
 
+        counter = 0
+        # iteration on sender packet for finding corresponding packet in the receiver packets
+        for index in range(send_cap_len):
+            send_pkt = send_cap[index]
+            send_pkt_id = dm_interface.get_id(send_pkt, is_rsu=True)
+
+            if send_pkt_id in rec_pkt_dict.keys():
+                rec_pkt = rec_pkt_dict[send_pkt_id]
+            else:
+                rec_pkt = None
+                counter += 1
+
+            pair_corresponding_pkts.append([send_pkt, rec_pkt])
+
+            if rec_pkt is not None:
+                del rec_pkt_dict[dm_interface.get_id(send_pkt, is_rsu=True)]
+
+        return pair_corresponding_pkts
+
+    
     def get_pair_pkt_list_with_delay(self):
         """
 
@@ -850,46 +871,6 @@ class PositionNetworkStatus:
         z = self.tf_message.transforms[0].transform.translation.z
 
         return x, y, z
-
-
-def pair_packets(send_cap, rec_cap, send_cap_len, rec_cap_len):
-    """
-    this function pair corresponding packets on the sender and receiver sides
-    :return: 2d list . example : [ [sender_pkt1,receiver_pkt1],...,[sender_pkt(n),receiver_pkt(n)] ]
-    """
-
-    print("packet loss : " + str(send_cap_len - rec_cap_len))
-
-    pair_corresponding_pkts = []
-
-    # temporary dictionary for holding received packets
-    rec_pkt_dict: dict = {}
-    for index in range(rec_cap_len):
-        key = dm_interface.get_id(rec_cap[index], is_rsu=False)
-        if key not in rec_pkt_dict.keys():
-            rec_pkt_dict[key] = rec_cap[index]
-        else:
-            print("There are some packets with the same Rsu StationID and packet ID in the packets")
-            # raise ValueError("There are some packets with the same Rsu StationID and packet ID in the packets")
-
-    counter = 0
-    # iteration on sender packet for finding corresponding packet in the receiver packets
-    for index in range(send_cap_len):
-        send_pkt = send_cap[index]
-        send_pkt_id = dm_interface.get_id(send_pkt, is_rsu=True)
-
-        if send_pkt_id in rec_pkt_dict.keys():
-            rec_pkt = rec_pkt_dict[send_pkt_id]
-        else:
-            rec_pkt = None
-            counter += 1
-
-        pair_corresponding_pkts.append([send_pkt, rec_pkt])
-
-        if rec_pkt is not None:
-            del rec_pkt_dict[dm_interface.get_id(send_pkt, is_rsu=True)]
-
-    return pair_corresponding_pkts
 
 
 def position_packetLoss_graph(position_netstat_dict: Dict[float, PositionNetworkStatus], plotter: Plotter,
