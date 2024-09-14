@@ -7,17 +7,14 @@ class Conf:
     """
     this is config class
     """
-    #
     # ros2 section
     ros2_files_directory: str
     ros2_files_path: list = []  # this variable is not in config file
     ros2_topics: list
 
-    #
     # rsu positions
     rsu_xy_positions: dict
 
-    #
     # csv files section
     dm_protocols: list
     csv_files_directory: str
@@ -28,7 +25,6 @@ class Conf:
     object_rsu_files: list = []
     object_obu_files: list = []
 
-    #
     # output section
     report_output_directory_address: str
     rosbag_output_directory_address: str
@@ -39,7 +35,6 @@ class Conf:
     equivalent_topics: list
     network_status_time: int
 
-    #
     # advance
     simulation: bool
     creating_txtFile_from_outputRos_file: bool
@@ -61,7 +56,6 @@ class Conf:
     online_graph_display_speed: float
     rsu_only_graphs: bool
 
-    #
     # position_reporter_packet_loss
     packet_loss_color: str
     packet_color: str
@@ -69,11 +63,9 @@ class Conf:
     packet_loss_point_size: float
     packet_point_size: float
 
-    #
     # position_delay reporter
     position_delay_packet_point_size: float
 
-    #
     # csv files
     csv_topics: list
     cpm_format_perceived_objects_number: int
