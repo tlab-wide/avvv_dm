@@ -96,14 +96,14 @@ class Conf:
                 if "signal" in file.lower():
                     Conf.signal_rsu_files.append(file)
                 elif "freespace" in file.lower():
-                    Conf.freeSpace_rsu_files.append(file)
+                    Conf.freespace_rsu_files.append(file)
                 elif "object" in file.lower():
                     Conf.object_rsu_files.append(file)
             elif "obu" in file.lower():
                 if "signal" in file.lower():
                     Conf.signal_obu_files.append(file)
                 elif "freespace" in file.lower():
-                    Conf.freeSpace_obu_files.append(file)
+                    Conf.freespace_obu_files.append(file)
                 elif "object" in file.lower():
                     Conf.object_obu_files.append(file)
 
