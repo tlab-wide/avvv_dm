@@ -56,6 +56,13 @@ def get_object_size(dataframe_row) -> tuple[int]:
     return int(dataframe_row[52]), int(dataframe_row[54]), int(dataframe_row[56])
 
 
+def get_signal_crp_id_column() -> int:
+    """
+    Returns the column ID for CRP ID of the signal messages
+    """
+    return 0
+
+
 def get_signal_crp_id(dataframe_row) -> int:
     """
     This function gets each (signal_info) dataframe row of
@@ -89,23 +96,30 @@ def get_signal_light_info(dataframe_row) -> tuple[int]:
     """
     return dataframe_row[7], dataframe_row[8], dataframe_row[9], dataframe_row[10]
 
-def get_generation_time(dataframe_row) -> int:
+def get_generation_time(dataframe_row, row_length) -> int:
     """
     This function gets each dataframe row of RSU or
     OBU and returns generation time of that
     """
-    return int(dataframe_row[-2])
+    return int(dataframe_row[row_length - 2])
 
 
-def get_epochtime(dataframe_row) -> int:
+def get_epochtime(dataframe_row, row_length) -> int:
     """
-    This function gets each dataframe row OBU and
-    return time of send or receive of that
+    This function gets each dataframe row and
+    returns time of send or receive of that
     """
-    return int(dataframe_row[-1])
+    return int(dataframe_row[row_length - 1])
 
 
-def get_object_information_source_list(dataframe_row) -> int:
+def get_object_information_source_list_column() -> int:
+    """
+    Return the column ID for object information source list
+    """
+    return 77
+
+
+def get_object_information_source_list(dataframe_row) -> list:
     """
     This function gets the CSV row of OBU and returns the information source
     list of the sensor that sent this DM message
@@ -121,13 +135,19 @@ def get_freespace_position_end(dataframe_row) -> tuple[int]:
     return dataframe_row[26], dataframe_row[27], dataframe_row[28], dataframe_row[29]
 
 
-def get_freespace_information_source_list(dataframe_row) -> int:
+def get_freespace_information_source_list_column() -> int:
+    """
+    Return the column ID for freespace information source list
+    """
+    return 53
+
+
+def get_freespace_information_source_list(dataframe_row) -> list:
     """
     This function gets the CSV row of OBU and returns the information source
     list of the sensor that sent this DM message
     """
-    # TODO: Find the correct index for this
-    return dataframe_row[77]
+    return dataframe_row[53]
 
 
 def get_rsu_position_in_xy(dataframe_row: str) -> Tuple[int, int]:
