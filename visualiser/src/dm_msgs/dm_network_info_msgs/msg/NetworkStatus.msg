@@ -1,5 +1,6 @@
 uint8 DSRC = 0
 uint8 CELLULAR = 1
+uint8 UNKNOWN = 2
 
 builtin_interfaces/Time stamp
 
