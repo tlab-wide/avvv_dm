@@ -27,7 +27,7 @@ def tf_type_reader(rosbag_folder_path: str) -> dict:
                 msg = (deserialize_cdr(rawdata, connection.msgtype))
 
                 key = float(str(msg.transforms[0].header.stamp.sec) + "." + str(
-                    msg.transforms[0].header.stamp.nanosec)) * 1000000000
+                    msg.transforms[0].header.stamp.nanosec)) * 1e+9 # Convert from ns to seconds
 
                 tf_messages[key] = msg
 

@@ -96,20 +96,20 @@ def get_signal_light_info(dataframe_row) -> tuple[int]:
     """
     return dataframe_row[7], dataframe_row[8], dataframe_row[9], dataframe_row[10]
 
-def get_generation_time(dataframe_row, row_length) -> int:
+def get_generation_time(dataframe_row) -> int:
     """
     This function gets each dataframe row of RSU or
     OBU and returns generation time of that
     """
-    return int(dataframe_row[row_length - 2])
+    return int(dataframe_row[dataframe_row.shape[0] - 2])
 
 
-def get_epochtime(dataframe_row, row_length) -> int:
+def get_epochtime(dataframe_row) -> int:
     """
     This function gets each dataframe row and
     returns time of send or receive of that
     """
-    return int(dataframe_row[row_length - 1])
+    return int(dataframe_row[dataframe_row.shape[0] - 1])
 
 
 def get_object_information_source_list_column() -> int:
