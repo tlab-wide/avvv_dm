@@ -2,14 +2,13 @@ import numpy as np
 import pandas as pd
 from rosbags.typesys.types import builtin_interfaces__msg__Time as builtin_time
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TFMsg
-from rosbags.typesys.types import dm_network_info_msgs__msg__NetworkStatus as netstat
 
 from general_tools import euclidean_distance
 from plotting import Plotter
 from config_avvv import Conf
 from ros2_interface.ros2file_read import tf_type_reader
 from csv_interface import dm_interface
-from ros2_interface.ros2msg_gen import DMCsvMessage, DMNCsvMessage
+from ros2_interface.ros2msg_gen import NetworkStatus as NetworkStatusType, ObjectInfo, SignalInfo, FreespaceInfo
 
 
 class NetworkStatus:
@@ -70,8 +69,8 @@ class NetworkStatus:
 
         self.plotter = Plotter(self.get_plots_directory())
 
-        self.network_status_list: list[netstat] = self.create_ros2_type_network_status()
-        # Up to here
+        self.network_status_list: list = self.create_ros2_type_network_status()
+        
         self.dmn_list = self.create_ros2_type_dmn()
 
         # if Conf.position_reporter: # todo : uncomment this two line when you have tf messages
@@ -183,27 +182,68 @@ class NetworkStatus:
 
         :return:
         """
-        ros2_type_dmn_list = []
+        match self.dm_protocol_type:
+            case "ObjectInfo":
+                DMMessage = ObjectInfo
+                create_message_array = ObjectInfo.create_object_info_array
+                create_message_array_n = ObjectInfo.create_object_info_array_n
+            case "SignalInfo":
+                DMMessage = SignalInfo
+                create_message_array = SignalInfo.create_signal_info_array
+                create_message_array_n = SignalInfo.create_signal_info_array_n
+            case "FreespaceInfo":
+                DMMessage = FreespaceInfo
+                create_message_array = FreespaceInfo.create_freespace_info_array
+                create_message_array_n = FreespaceInfo.create_freespace_info_array_n
 
-        for pair in self.pair_packet_list_with_delay:
-            send_packet = pair[0]
+        # Create DMN messages
+        dmn_messages = [
+            create_message_array_n(
+                create_message_array(
+                    [
+                        DMMessage(packet).msg
+                        for packet in pn.rsu_packets.itertuples(index=False)
+                    ]
+                ),
+                NetworkStatusType(
+                    delay=pn.delay,
+                    jitter=0, # TODO Not complete
+                    rssi=255, # TODO not complete
+                    packet_loss=pn.packet_loss,
+                    packet_count=1,
+                    time_stamp=timestamp,
+                    medium=2 # TODO Unknown medium type
+                )
+            )
+            for timestamp, pn in self.position_netstat_dict.items()
+        ]
 
-            rec_packet = pair[1]
+        # Create a list of send epoch times
+        send_epoch_times = [
+            dm_interface.get_epochtime(pn.rsu_packets.iloc[0])
+            for pn in self.position_netstat_dict.values()
+        ]
 
-            delay = pair[2]
+        # for pair in self.pair_packet_list_with_delay:
+        #     send_packet = pair[0]
 
-            dm = DMCsvMessage(send_packet, dm_interface.get_timestamp(send_packet, True)).ros_csv_dm_message
+        #     rec_packet = pair[1]
 
-            network_status = NetworkStatus.create_ros2_type_network_status_per_packet(rec_packet, send_packet, delay)
+        #     delay = pair[2]
 
-            # tf_message = self.position_netstat_dict[
-            #     cpm_interface.get_generationdeltatime(send_packet, False)].tf_message  # todo : uncomment above when tf messages exist
+        #     dm = DMCsvMessage(send_packet, dm_interface.get_timestamp(send_packet, True)).ros_csv_dm_message
 
-            dmn_msg = DMNCsvMessage(dm, network_status).ros_csv_dmn_message
+        #     network_status = NetworkStatus.create_ros2_type_network_status_per_packet(rec_packet, send_packet, delay)
 
-            msg_info = [dm_interface.get_epochtime(send_packet), dmn_msg]
+        #     # tf_message = self.position_netstat_dict[
+        #     #     cpm_interface.get_generationdeltatime(send_packet, False)].tf_message  # todo : uncomment above when tf messages exist
 
-            ros2_type_dmn_list.append(msg_info)
+        #     dmn_msg = DMNCsvMessage(dm, network_status).ros_csv_dmn_message
+
+        #     msg_info = [dm_interface.get_epochtime(send_packet), dmn_msg]
+
+        #     ros2_type_dmn_list.append(msg_info)
+        ros2_type_dmn_list = list(zip(dmn_messages, send_epoch_times))
 
         return ros2_type_dmn_list
 
@@ -464,7 +504,6 @@ class NetworkStatus:
 
         return pkt_delays
 
-    @staticmethod
     def measuring_jitter_time(delays_list: list, draw=False) -> float:
         """
 
@@ -479,88 +518,86 @@ class NetworkStatus:
 
         return jitter
 
-    @staticmethod
-    def create_ros2_type_network_status_per_packet(rec_pkt, send_pkt, delay: float = None):
-        """
-        this function creating network status ros2 type for just one packet
-        :param delay:
-        :param rec_pkt:
-        :param send_pkt:
-        :return:
-        """
-        if rec_pkt is not None:
-            epochtime_rec = dm_interface.get_epochtime(rec_pkt)
+    # @staticmethod
+    # def create_ros2_type_network_status_per_packet(rec_pkt, send_pkt, delay: float = None):
+    #     """
+    #     this function creating network status ros2 type for just one packet
+    #     :param delay:
+    #     :param rec_pkt:
+    #     :param send_pkt:
+    #     :return:
+    #     """
+    #     if rec_pkt is not None:
+    #         epochtime_rec = dm_interface.get_epochtime(rec_pkt)
 
-        epochtime_send = dm_interface.get_epochtime(send_pkt)
+    #     epochtime_send = dm_interface.get_epochtime(send_pkt)
 
-        # Extract seconds and microseconds components
-        seconds = epochtime_send // 1_000_000  # Whole number of seconds
-        microseconds = epochtime_send % 1_000_000  # Remaining microseconds
-        # Convert microseconds to nanoseconds
-        nanoseconds = microseconds * 1000
-        builtin_epochtime = builtin_time(sec=int(seconds), nanosec=int(nanoseconds))
+    #     # Extract seconds and microseconds components
+    #     seconds = epochtime_send // 1_000_000  # Whole number of seconds
+    #     microseconds = epochtime_send % 1_000_000  # Remaining microseconds
+    #     # Convert microseconds to nanoseconds
+    #     nanoseconds = microseconds * 1000
+    #     builtin_epochtime = builtin_time(sec=int(seconds), nanosec=int(nanoseconds))
 
-        jitter = 0  # TODO : jitter is not completed
-        rssi = 255  # TODO : rssi is not completed
+    #     jitter = 0  # TODO : jitter is not completed
+    #     rssi = 255  # TODO : rssi is not completed
 
-        if rec_pkt is None:
-            packet_loss = 1
-            delay = -1
+    #     if rec_pkt is None:
+    #         packet_loss = 1
+    #         delay = -1
 
-        else:
-            packet_loss = 0
-            if delay is None:
-                delay = (epochtime_rec - epochtime_send) / 1000
+    #     else:
+    #         packet_loss = 0
+    #         if delay is None:
+    #             delay = (epochtime_rec - epochtime_send) / 1000
 
-        return netstat(stamp=builtin_epochtime, delay=delay, jitter=jitter, rssi=rssi,
-                       packet_loss=packet_loss, packet_count=1)
+    #     return netstat(stamp=builtin_epochtime, delay=delay, jitter=jitter, rssi=rssi,
+    #                    packet_loss=packet_loss, packet_count=1)
 
-    def create_ros2_type_network_status(self) -> list[netstat]:
+    def create_ros2_type_network_status(self) -> list:
         """
         1. Creates some dictionary like { sec value 1 : [ delay0 (in sec value) , ... , delay(n) ] , ... }
         2. Creates network status list like : [ [ epochtime average,netstat ] , ... ]
         :return:
         """
-        # this is first packet time (send time)
-        first_pkt_time = dm_interface.get_epochtime(self.pair_packet_list_with_delay[0][0])
+        # First packet time (send time)
+        first_pkt_time = dm_interface.get_epochtime(
+            self.sender_packets.loc[0])
 
         # Keys are sec times and values are list of delays on that time
         network_status_delay_dict = {}
-
         # Keys are sec times and values are list of epochtimes
         network_status_epochtime_dict = {}
-
         # Keys are sec times and values are packet loss
-        network_status_packetloss_dict = {}
+        network_status_packet_loss_dict = {}
 
         # Iteration per pair packets list and adding information to dictionaries
-        for pair in self.pair_packet_list_with_delay:
+        for packet_index, packet_timestamp in enumerate(self.sender_pkt_timestamps):
 
-            sender_epochtime = dm_interface.get_epochtime(pair[0])  # epoch time of sender packet
+            sender_epochtime = dm_interface.get_epochtime(
+                self.sender_packets.loc[self.sender_pkt_dict[packet_timestamp][0]])  # Epoch time of sender packet
 
             pkt_time_from_start = ((sender_epochtime - first_pkt_time) / 1000)
 
             key = int(pkt_time_from_start / Conf.network_status_time)
 
-            delay = pair[2]
+            delay = self.pkt_delays[packet_index]
+            packet_loss = self.position_netstat_dict[packet_timestamp]
 
+            # Keep current packet's epoch time
             try:
                 network_status_epochtime_dict[key].append(sender_epochtime)
             except:
                 network_status_epochtime_dict[key] = [sender_epochtime]
 
-            if pair[1] is None:  # if we have no delay time (we have packet loss)
-                try:
-                    network_status_packetloss_dict[key].append(1)
-                except:
-                    network_status_packetloss_dict[key] = [1]
+            # Keep current packet's loss value
+            try:
+                network_status_packet_loss_dict[key].append(packet_loss)
+            except:
+                network_status_packet_loss_dict[key] = [packet_loss]
 
-            else:  # if we have delay . ( we don't have packet loss)
-                try:
-                    network_status_packetloss_dict[key].append(0)
-                except:
-                    network_status_packetloss_dict[key] = [0]
-
+            # Keep current packet's delay value
+            if not delay < 0.:
                 try:
                     network_status_delay_dict[key].append(delay)
                 except:
@@ -588,35 +625,31 @@ class NetworkStatus:
 
             # Initialise variables
             epochtime_avg = np.average(network_status_epochtime_dict[key])
-            packet_loss_avg = round(np.average(network_status_packetloss_dict[key]), 4)
+            packet_loss_avg = np.average(network_status_packet_loss_dict[key])
             packet_count = len(network_status_epochtime_dict[key])
 
             if key in network_status_delay_dict.keys() and len(network_status_delay_dict[key]) != 0:
-                delay_avg = round(np.average(network_status_delay_dict[key]), 4)
-                jitter = round(
-                    NetworkStatus.measuring_jitter_time(delays_list=network_status_delay_dict[key], draw=False), 4)
+                delay_avg = np.average(network_status_delay_dict[key])
+                jitter = self.measuring_jitter_time(
+                    delays_list=network_status_delay_dict[key],
+                    draw=False)
             else:
                 delay_avg = -1.0
                 jitter = -1.0
-
-            # Extract seconds and microseconds components
-            seconds = epochtime_avg // 1_000_000  # Whole number of seconds
-            microseconds = epochtime_avg % 1_000_000  # Remaining microseconds
-            # Convert microseconds to nanoseconds
-            nanoseconds = microseconds * 1000
-            builtin_epochtime = builtin_time(sec=int(seconds), nanosec=int(nanoseconds))
 
             # Add to output list
             network_status_list.append(
                 [
                     epochtime_avg,
-                    netstat(
-                        stamp=builtin_epochtime,
-                        delay=delay_avg,
-                        jitter=jitter,
-                        rssi=rssi,
-                        packet_loss=packet_loss_avg,
-                        packet_count=packet_count)
+                    NetworkStatusType(
+                        delay_avg,
+                        jitter,
+                        rssi,
+                        packet_loss_avg,
+                        packet_count,
+                        epochtime_avg,
+                        2 # TODO Currently we set medium to be unknown, this needs to change later
+                    ).msg
                 ])
 
             # Plot lists
@@ -630,9 +663,15 @@ class NetworkStatus:
 
         # Plot
         if Conf.time_reporter:
-            self.draw_network_status(Conf.network_status_time, delay_list, jitter_list, pkt_loss_list,
-                                     rssi_list,
-                                     packet_count_list, epoch_time_avg_list, self.plotter)
+            self.draw_network_status(
+                Conf.network_status_time,
+                delay_list,
+                jitter_list,
+                pkt_loss_list,
+                rssi_list,
+                packet_count_list,
+                epoch_time_avg_list,
+                self.plotter)
 
         return network_status_list
 
@@ -790,8 +829,7 @@ class NetworkStatus:
         for packet_index, packet_timestamp in enumerate(self.sender_pkt_timestamps):
             sender_packet_indices = self.sender_pkt_dict[packet_timestamp]
             # Get key of position netstat dictionary (key is generation time of RSU message)
-            key = dm_interface.get_generation_time(
-                self.sender_packets.loc[sender_packet_indices[0]])
+            key = packet_timestamp
 
             # Get time of packet (it is time of receiver OBU except when we have packet loss)
             if self.existing_sender_packets[packet_index]:

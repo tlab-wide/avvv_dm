@@ -107,7 +107,7 @@ class RSU(Node):
         
         for _, indices in packet_message_groups.items():
             dm_csv_row_message_time_stamp = dm_interface.get_epochtime(
-                self._csv_rows.loc[indices[0]], row_length)
+                self._csv_rows.loc[indices[0]])
         
             dm_message_array = create_dm_message_array([
                 dm_message(self._csv_rows.loc[index])

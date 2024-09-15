@@ -82,12 +82,17 @@ def dm_merger() -> None:
                 dm_dict_information[dmn_topic] = ros2type_dmn_list
 
     # ROSBAG topics
-    ros_dict_information = topics.collect_topics_from_rosbag2_file(Conf.ros2_files_path, Conf.ros2_topics,
-                                                                   Conf.equivalent_topics)
+    ros_dict_information = topics.collect_topics_from_rosbag2_file(
+        Conf.ros2_files_path,
+        Conf.ros2_topics,
+        Conf.equivalent_topics)
 
     # Create output ROSBAG file
-    create_rosbag2_file_from_dmAndRos2_files(Conf.rosbag_output_directory_address, Conf.ros2_output_file_name,
-                                               dm_dict_information, ros_dict_information)
+    create_rosbag2_file_from_dmAndRos2_files(
+        Conf.rosbag_output_directory_address,
+        Conf.ros2_output_file_name,
+        dm_dict_information,
+        ros_dict_information)
 
     # Create graphs of RSU
     # if Conf.rsu_only_graphs:
