@@ -1,0 +1,63 @@
+# Input and output file paths
+paths:
+	input_obu_tf_path: ""
+	input_obu_object_info_path: ""
+	input_obu_signal_info_path: ""
+	input_obu_freespace_info_path: ""
+	output_folder_path: ""
+
+# Message topics
+topics:
+	obu_tf_topic_name: "/tf"
+	freespace_info_topic_name: "/freespace_info/dm"
+	signal_info_topic_name: "/signal_info/dm"
+	object_info_topic_name: "/object_info/dm"
+
+# Indices of rows in CSV files
+indices:
+	# OBU TF
+	obu_x_idx: 0
+	obu_y_idx: 1
+	obu_z_idx: 2
+	obu_yaw_idx: 3
+	obu_stamp_idx: 4
+
+	# Freespace info
+	freespace_time_idx: 1
+	freespace_begin_geo_idx: 4
+	freespace_begin_lat_idx: 5
+	freespace_begin_lon_idx: 6
+	freespace_begin_alt_idx: 7
+	freespace_end_geo_idx: 26
+	freespace_end_lat_idx: 27
+	freespace_end_lon_idx: 28
+	freespace_end_alt_idx: 29
+	freespace_stamp_idx: -1
+
+	# Signal info
+	signal_crp_idx: 0
+	signal_beacon_idx: 1
+	signal_time_idx: 2
+	signal_main_idx: 7
+	signal_arrow_idx: 8
+	signal_min_time_idx: 9
+	signal_max_time_idx: 10
+	signal_stamp_idx: -1
+
+	# Object info
+	object_time_idx: 1
+	object_class_id_idx: 2
+	object_class_conf_idx: 3
+	object_exist_idx: 18
+	object_geo_idx: 19
+	object_lat_idx: 20
+	object_lon_idx: 21
+	object_alt_idx: 22
+	object_orient_idx: 50
+	object_length_idx: 52
+	object_width_idx: 54
+	object_height_idx: 56
+	object_stamp_idx: -1
+
+# CSV timestamp scale (to ns)
+timestamp_scale: 1e+6 # ms to ns
