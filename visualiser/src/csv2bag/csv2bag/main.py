@@ -93,7 +93,7 @@ def main(args=None):
     OBJECT_STAMP_IDX = config["indices"]["object_stamp_idx"]
 
     # CSV timestamp scale (to ns)
-    TIMESTAMP_SCALE = config["timestamp_scale"] # ms to ns
+    TIMESTAMP_SCALE = int(config["timestamp_scale"]) # ms to ns
 
     ###############################
     ## Create topics in BAG file ##
@@ -216,7 +216,7 @@ def main(args=None):
 
             signal_info = SignalInfo()
             signal_info.crp_id.value = int(row[SIGNAL_CRP_IDX])
-            signal_info.signal_id_list = [SignalId(value=int(x)) for x in row[SIGNAL_BEACON_IDX].split(',')]
+            signal_info.signal_id_list = [SignalId(value=int(x)) for x in row[SIGNAL_BEACON_IDX].split(',')[:-1]]
             signal_info.signal_light_info_list = [
                 SignalLightInfo(
                     main_light=MainLightIndication(value=int(float(row[SIGNAL_MAIN_IDX]))),
