@@ -260,9 +260,15 @@ def main(args=None):
             object_info.object_location.longitude.value = int(row[OBJECT_LON_IDX])
             object_info.object_location.altitude.value = int(row[OBJECT_ALT_IDX])
             object_info.orientation.value.value = int(row[OBJECT_ORIENT_IDX])
-            object_info.size.length.value.value = int(row[OBJECT_LENGTH_IDX])
-            object_info.size.width.value.value = int(row[OBJECT_WIDTH_IDX])
-            object_info.size.height.value.value = int(row[OBJECT_HEIGHT_IDX])
+            try: # Temporary try except clause for handling negative length/width/height values
+                object_info.size.length.value.value = int(row[OBJECT_LENGTH_IDX])
+                object_info.size.width.value.value = int(row[OBJECT_WIDTH_IDX])
+                object_info.size.height.value.value = int(row[OBJECT_HEIGHT_IDX])
+            except AssertionError:
+                object_info.size.length.value.value = 65535 # Unknown
+                object_info.size.width.value.value = 65535 # Unknown
+                object_info.size.height.value.value = 65535 # Unknown
+
             object_array.array.append(object_info)
             previous_received_time = int(float(row[OBJECT_STAMP_IDX]))
 
