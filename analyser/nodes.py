@@ -1,12 +1,12 @@
+import os
 from abc import ABC
-from typing import List, Iterable
-from pathlib import Path
+from typing import List
 
 import pandas
 
 from general_tools import creating_directory, merge_dicts, extract_id_from_csv_file_name
 from network_status import NetworkStatus
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 from plotting import Plotter
 from csv_interface import csv_general_tools, dm_interface
 from ros2_interface.ros2msg_gen import ObjectInfo, SignalInfo, FreespaceInfo
@@ -27,7 +27,7 @@ class Node(ABC):
         """
         This function reading csv file and returning list of csv rows
         """
-        rows = csv_general_tools.read_csv_file(Path(self._csv_file_name))
+        rows = csv_general_tools.read_csv_file(os.path.join(Conf.csv_files_directory, self._csv_file_name))
         return rows
 
     def __get_its_station_id(self):
@@ -64,7 +64,7 @@ class RSU(Node):
         self.__plotter = Plotter(self.get_plots_directory_name())
         
     def __get_rsu_position_in_xy(self):
-        return Conf.rsu_info[self.__rsu_station_id]["xy"]
+        return Conf.rsu_info[str(self._its_station_id)]["xy"]
 
     def get_position(self):
         """
@@ -125,7 +125,7 @@ class RSU(Node):
         """
         Returns topic name of DM messages for this RSU
         """
-        topic = f"/RSU_{str(self.__rsu_station_id)}/{self._dm_protocol_type}"
+        topic = f"/RSU_{str(self._its_station_id)}/{self._dm_protocol_type}"
         return topic
 
     def get_plots_directory_name(self) -> str:
@@ -133,7 +133,7 @@ class RSU(Node):
         this method creates and return the name of the plots directory of this Rsu in the graphs directory
         :return:
         """
-        return f"RSU_{str(self.__rsu_station_id)}"
+        return f"RSU_{str(self._its_station_id)}"
 
     # def __netstat_position_graphs(self) -> None:
     #     """

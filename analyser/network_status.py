@@ -118,8 +118,8 @@ class NetworkStatus:
         sender_pkt_timestamps = np.array(list(sender_pkt_dict.keys()))
         
         if len(receiver_pkt_ids) > len(sender_pkt_timestamps):
-            print(f"Warning: More receiver messages than sender ones.
-                RSU: {self.sender_station_id}, OBU: {self.receiver_station_id}")
+            print(f"""Warning: More receiver messages than sender ones.
+                RSU: {self.sender_station_id}, OBU: {self.receiver_station_id}""")
         
         existing_sender_packets = np.isin(sender_pkt_timestamps, receiver_pkt_ids)
         
@@ -486,10 +486,10 @@ class NetworkStatus:
             # Some sanity checks
             if len(receiver_pkt_dict[sender_pkt_timestamps[packet_index]]) > \
                 len(sender_pkt_dict[sender_pkt_timestamps[packet_index]]):
-                print(f"Warning: More objects in receiver than in sender:
+                print(f"""Warning: More objects in receiver than in sender:
                     RSU: {self.sender_station_id},
                     OBU: {self.receiver_station_id},
-                    Timestamp: {sender_pkt_timestamps[packet_index]}")
+                    Timestamp: {sender_pkt_timestamps[packet_index]}""")
             
             # Calculate the delays:
             # (time of last object in receiver message - time of first object in sender message)
@@ -863,7 +863,7 @@ class NetworkStatus:
                     self.pkt_delays[packet_index],
                     self.dm_protocol_type)
             except:
-                print("this packet has no message on tf topic")
+                print("This packet has no message on tf topic")
 
         return position_netstat_dict
 

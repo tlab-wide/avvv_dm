@@ -5,7 +5,7 @@ creating some reports for the topics, files, and network status
 import topics
 from nodes import NodesManager
 from ros2_interface.ros2file_gen import create_rosbag2_file_from_dmAndRos2_files
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 from network_status import NetworkStatus
 
 

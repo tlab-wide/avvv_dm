@@ -1,10 +1,7 @@
-"""this module contain some useful function for working with csv files """
+"""This module contains some useful function for working with csv files """
 from pathlib import Path
 
 import pandas
-
-from analyser.config_avvv import Conf
-
 
 
 def read_csv_file(csv_file_path: Path) -> pandas.DataFrame:

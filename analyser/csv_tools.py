@@ -1,7 +1,7 @@
 import csv
 from rosbags.serde import deserialize_cdr
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TF
-from analyser.config_avvv import Conf
+from config_avvv import Conf
 from typing import List
 #
 #

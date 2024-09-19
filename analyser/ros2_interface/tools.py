@@ -27,5 +27,4 @@ def register_new_types(directory_path: str) -> None:
         msgtype = msgpath.relative_to(msgpath.parents[2]).with_suffix('')
         add_types.update(get_types_from_msg(msgdef, msgtype))
 
-    print(add_types)
     register_types(add_types)
