@@ -51,17 +51,19 @@ class NetworkStatus:
         rsu_position = Conf.rsu_info[str(self.sender_station_id)]["xy"]
         self.rsu_position_x, self.rsu_position_y = rsu_position[0], rsu_position[1]
 
-        self.sender_pkt_dict,
-        self.sender_pkt_timestamps,
-        self.existing_sender_packets,
-        self.receiver_pkt_dict,
+        self.sender_pkt_dict, \
+        self.sender_pkt_timestamps, \
+        self.existing_sender_packets, \
+        self.receiver_pkt_dict, \
         self.pkt_delays = self.get_pair_pkt_list_with_delay()
 
         # self.jitter_list = self.measuring_jitter_rfc3550() # todo : this is not completed
 
         # self.rssi_list = self.measuring_rssi()  # todo : this is not completed
 
+        input("before create_position_netstat_dict")
         self.position_netstat_dict = self.create_position_netstat_dict()
+        input("after create_position_netstat_dict")
 
         # self.delete_far_packets()  # todo: uncomment this when tf messages do not exist
 
@@ -69,15 +71,19 @@ class NetworkStatus:
 
         self.plotter = Plotter(self.get_plots_directory())
 
-        self.network_status_list: list = self.create_ros2_type_network_status()
-        
-        self.dmn_list = self.create_ros2_type_dmn()
-
         # if Conf.position_reporter: # todo : uncomment this two line when you have tf messages
-        self.plotting_position_graphs()
+        self.plot_position_graphs()
 
         # if Conf.distance_reporters: # todo :  uncomment this two line when you have tf messages
-        self.plotting_distance_graphs()  # todo: getting distance list with converting this function to two function
+        self.plot_distance_graphs()  # todo: getting distance list with converting this function to two function
+
+        input("before create_ros2_type_network_status")
+        self.network_status_list: list = self.create_ros2_type_network_status()
+        input("after create_ros2_type_network_status")
+
+        input("before create_ros2_type_dmn")        
+        self.dmn_list = self.create_ros2_type_dmn()
+        input("after create_ros2_type_dmn")        
 
         # if Conf.time_reporter: # todo: this is not completed
         #     self.plotting_time_graphs()
@@ -114,14 +120,14 @@ class NetworkStatus:
         sender_gen_time_column = self.sender_packets.shape[1] - 2
         sender_pkt_dict: dict = self.sender_packets.groupby(by=sender_gen_time_column).groups
         
-        receiver_pkt_ids = np.array(list(receiver_pkt_dict.keys()))
+        receiver_pkt_timestamps = np.array(list(receiver_pkt_dict.keys()))
         sender_pkt_timestamps = np.array(list(sender_pkt_dict.keys()))
-        
-        if len(receiver_pkt_ids) > len(sender_pkt_timestamps):
+
+        if len(receiver_pkt_timestamps) > len(sender_pkt_timestamps):
             print(f"""Warning: More receiver messages than sender ones.
                 RSU: {self.sender_station_id}, OBU: {self.receiver_station_id}""")
         
-        existing_sender_packets = np.isin(sender_pkt_timestamps, receiver_pkt_ids)
+        existing_sender_packets = np.isin(sender_pkt_timestamps, receiver_pkt_timestamps)
         
         # for index in range(rec_cap_len):
         #     key = dm_interface.get_id(rec_cap[index], is_rsu=False)
@@ -156,15 +162,14 @@ class NetworkStatus:
 
         :return: pair packet list with delay
         """
-
         sender_pkt_dict, sender_pkt_timestamps, existing_sender_packets, receiver_pkt_dict = self.get_pair_packet_list()
-
+        
         pkt_delays = self.measuring_delay_time(
             sender_pkt_dict,
             sender_pkt_timestamps,
             existing_sender_packets,
             receiver_pkt_dict)
-
+        
         return sender_pkt_dict, sender_pkt_timestamps, existing_sender_packets, receiver_pkt_dict, pkt_delays
 
     def get_ros2type_network_status_list(self):
@@ -311,54 +316,54 @@ class NetworkStatus:
         # netstat(netstat_msg)
         pass
 
-    def plotting_distance_graphs(self):
+    def plot_distance_graphs(self):
         """
 
         :return:
         """
-        # todo : adding jitter and rssi to this function
+        # TODO Add jitter and RSSI to this function
 
         time_list = []
         distance_list = []
         delay_list = []
         packet_loss_list = []
 
-        # this list is using for distance-delay ,distance-packetLoss and ...
+        # This list is used for distance-delay, distance-packetLoss, etc
         dicts_list = []
 
         for pnc in self.position_netstat_dict.values():
-            # calculating distance
+            # Calculate distance
             distance = euclidean_distance((pnc.x_tf, pnc.y_tf), (self.rsu_position_x, self.rsu_position_y))
 
-            # adding to lists
-            time_list.append(dm_interface.get_epochtime(pnc.rsu_packet))
+            # Add to lists
+            time_list.append(dm_interface.get_epochtime(pnc.rsu_packets.iloc[-1]))
             distance_list.append(distance)
             delay_list.append(pnc.delay)
             packet_loss_list.append(pnc.packet_loss)
+            print(pnc.packet_loss)
 
-            # adding to dicts_list
+            # Add to dicts_list
             dicts_list.append(dict(distance=distance, delay=pnc.delay, packet_loss=pnc.packet_loss))
 
-        # removing None values
+        # Remove None values
         delay_array = np.array(delay_list)
         delay_array[delay_array == None] = 0
         delay_list = delay_array.tolist()
 
-        # packet loss is boolean change that to (0,1)
-        packet_loss_list = np.array(packet_loss_list, dtype=int)
+        self.plotter.create_animated_3d_linear_plot_with_matplotlib(
+            np.array(distance_list),
+            np.array(range(len(time_list))),
+            np.array(delay_list),
+            "Delay & Packet loss x Distance x Time (animation)",
+            "distance", "time", "delay", linelabel="delay",
+            pointlabel="packet-loss")
 
-        self.plotter.create_animated_3d_linear_plot_with_matplotlib(np.array(distance_list),
-                                                                    np.array(range(len(time_list))),
-                                                                    np.array(delay_list),
-                                                                    "Delay & Packet loss x Distance x Time (animation)",
-                                                                    "distance", "time", "delay", linelabel="delay",
-                                                                    pointlabel="packet-loss")
-
-        self.plotter.create_3d_linear_plot_with_matplotlib(np.array(distance_list),
-                                                           np.array(range(len(time_list))),
-                                                           np.array(delay_list),
-                                                           "Delay & Packet loss x Distance x Time ",
-                                                           "distance", "time", "delay")
+        self.plotter.create_3d_linear_plot_with_matplotlib(
+            np.array(distance_list),
+            np.array(range(len(time_list))),
+            np.array(delay_list),
+            "Delay & Packet loss x Distance x Time ",
+            "distance", "time", "delay")
 
         sorted_list = sorted(dicts_list, key=lambda x: x['distance'])
         sorted_list_distances = []
@@ -374,41 +379,46 @@ class NetworkStatus:
         delay_array[delay_array == None] = 0
         sorted_list_delay = delay_array.tolist()
 
-        # packet loss is boolean change that to (0,1)
-        sorted_list_packetLoss = np.array(sorted_list_packetLoss, dtype=int)
+        self.plotter.create_animated_3d_linear_plot_with_matplotlib(
+            np.array(sorted_list_distances),
+            np.zeros_like(sorted_list_distances),
+            np.array(sorted_list_delay),
+            "Delay & Packet loss x Distance ( animation )",
+            "distance", "y", "delay", linelabel="delay",
+            pointlabel="packet-loss")
 
-        self.plotter.create_animated_3d_linear_plot_with_matplotlib(np.array(sorted_list_distances),
-                                                                    np.zeros_like(sorted_list_distances),
-                                                                    np.array(sorted_list_delay),
-                                                                    "Delay & Packet loss x Distance ( animation )",
-                                                                    "distance", "y", "delay", linelabel="delay",
-                                                                    pointlabel="packet-loss")
-
-        self.plotter.create_3d_linear_plot_with_matplotlib(np.array(sorted_list_distances),
-                                                           np.zeros_like(sorted_list_distances),
-                                                           np.array(sorted_list_delay),
-                                                           "Delay & Packet loss x Distance",
-                                                           "distance", "y", "delay")
+        self.plotter.create_3d_linear_plot_with_matplotlib(
+            np.array(sorted_list_distances),
+            np.zeros_like(sorted_list_distances),
+            np.array(sorted_list_delay),
+            "Delay & Packet loss x Distance",
+            "distance", "y", "delay")
 
         y_data_list = [np.linspace(0, 0, len(sorted_list_distances)),
                        np.linspace(1, 1, len(sorted_list_distances)),
                        np.linspace(2, 2, len(sorted_list_distances))]
 
-        self.plotter.create_animated_3d_linear_plots_with_matplotlib(sorted_list_distances, y_data_list,
-                                                                     [np.linspace(0, 0, len(sorted_list_distances)),
-                                                                      sorted_list_delay, sorted_list_packetLoss],
-                                                                     "Delay-PacketLoss & Jitter & RSSI x Distance ( animation )",
-                                                                     "jitter",
-                                                                     "delay", "packet loss",
-                                                                     "distance", "y", "value")
+        self.plotter.create_animated_3d_linear_plots_with_matplotlib(
+            sorted_list_distances, y_data_list,
+            [
+                np.linspace(0, 0, len(sorted_list_distances)),
+                sorted_list_delay, sorted_list_packetLoss
+            ],
+            "Delay-PacketLoss & Jitter & RSSI x Distance ( animation )",
+            "jitter",
+            "delay", "packet loss",
+            "distance", "y", "value")
 
-        self.plotter.create_3d_linear_plots_with_matplotlib(sorted_list_distances, y_data_list,
-                                                            [np.linspace(0, 0, len(sorted_list_distances)),
-                                                             sorted_list_delay, sorted_list_packetLoss],
-                                                            "Delay-PacketLoss & Jitter & RSSI x Distance",
-                                                            "jitter",
-                                                            "delay", "packet loss",
-                                                            "distance", "y", "value")
+        self.plotter.create_3d_linear_plots_with_matplotlib(
+            sorted_list_distances, y_data_list,
+            [
+                np.linspace(0, 0, len(sorted_list_distances)),
+                sorted_list_delay, sorted_list_packetLoss
+            ],
+            "Delay-PacketLoss & Jitter & RSSI x Distance",
+            "jitter",
+            "delay", "packet loss",
+            "distance", "y", "value")
 
     @staticmethod
     def calculate_delay(sent_packet, received_packet) -> float:
@@ -482,7 +492,7 @@ class NetworkStatus:
         # Set missing (lost) packets delay to -1.0
         pkt_delays = existing_sender_packets.astype(float) - 1.0
 
-        for packet_index in np.where(existing_sender_packets):
+        for packet_index in np.where(existing_sender_packets)[0]:
             # Some sanity checks
             if len(receiver_pkt_dict[sender_pkt_timestamps[packet_index]]) > \
                 len(sender_pkt_dict[sender_pkt_timestamps[packet_index]]):
@@ -818,7 +828,7 @@ class NetworkStatus:
         """
 
         # Find OBU ROSBAG file with obu_station_id
-        obu_ros2_file_address = Conf.ros2_files_directory + "/OBU_" + self.receiver_station_id
+        obu_ros2_file_address = Conf.ros2_files_directory + "/OBU_" + str(self.receiver_station_id)
 
         # Dictionary with key = (message stamp time) and value = tf message
         tf_messages = tf_type_reader(rosbag_folder_path=obu_ros2_file_address)
@@ -839,14 +849,14 @@ class NetworkStatus:
             else:
                 pkt_time = key
 
-            pkt_time /= 1e+3 # Convert to ns from ms
+            pkt_time /= 1e+3 # Convert to seconds from milliseconds
 
             # Find the closest time in TF messages to time of packet
             temp_min = Conf.max_difference_time_for_equivalent_tf_message
 
-            for tf_message_time in tf_messages:
+            for tf_message_time, tm_message in tf_messages.items():
                 if abs(pkt_time - tf_message_time) < temp_min:
-                    tf_message = tf_messages[tf_message_time]
+                    closest_tf_message = tm_message
                     temp_min = abs(pkt_time - tf_message_time)
 
             rsu_packets = self.sender_packets.loc[sender_packet_indices]
@@ -859,15 +869,16 @@ class NetworkStatus:
                 position_netstat_dict[key] = PositionNetworkStatus(
                     rsu_packets,
                     obu_packets,
-                    tf_message,
+                    closest_tf_message,
                     self.pkt_delays[packet_index],
                     self.dm_protocol_type)
-            except:
+            except Exception as e:
+                print(e)
                 print("This packet has no message on tf topic")
 
         return position_netstat_dict
 
-    def plotting_position_graphs(self) -> None:
+    def plot_position_graphs(self) -> None:
         """
         this method creates graphs according to each position of obu
         graphs are for packet loss, delay, jitter, and RSSI
@@ -876,11 +887,19 @@ class NetworkStatus:
         """
         title_appendix = self.get_plots_directory()
 
-        position_packetLoss_graph(self.position_netstat_dict, self.plotter, self.rsu_position_x, self.rsu_position_y,
-                                  title_appendix)
+        position_packetLoss_graph(
+            self.position_netstat_dict,
+            self.plotter,
+            self.rsu_position_x,
+            self.rsu_position_y,
+            title_appendix)
 
-        position_delay_graph(self.position_netstat_dict, self.plotter, self.rsu_position_x, self.rsu_position_y,
-                             title_appendix)
+        position_delay_graph(
+            self.position_netstat_dict,
+            self.plotter,
+            self.rsu_position_x,
+            self.rsu_position_y,
+            title_appendix)
 
         # position_jitter_graph(self.position_netstat_dict, self.plotter, self.rsu_position_x, self.rsu_position_y, title_appendix) # todo: not completed
 
@@ -934,20 +953,21 @@ class PositionNetworkStatus:
 
         match dm_protocol_type:
             case "ObjectInfo":
-                get_id = dm_interface.get_object_id
+                get_id = dm_interface.get_object_packet_id
             case "SignalInfo":
-                get_id = dm_interface.get_signal_id
+                get_id = dm_interface.get_signal_packet_id
             case "FreespaceInfo":
-                get_id = dm_interface.get_freespace_id
+                get_id = dm_interface.get_freespace_packet_id
 
+        # Calculate packet loss as a percentage
         if obu_packets is None: # The whole message is lost
             self.packet_loss = 1.0
         else: # Some of the objects in the message might be missing on the receiver side
             receiver_packet_ids = [get_id(packet) for packet in obu_packets.itertuples(index=False)]
             sender_packet_losses = np.array(
                 [get_id(packet) in receiver_packet_ids for packet in rsu_packets.itertuples(index=False)])
-            
-            self.packet_loss = np.mean(sender_packet_losses)
+            self.packet_loss = 1.0 - np.mean(sender_packet_losses)
+
 
     def get_tf_translation(self):
         """
@@ -962,10 +982,12 @@ class PositionNetworkStatus:
         return x, y, z
 
 
-def position_packetLoss_graph(position_netstat_dict: dict[float, PositionNetworkStatus], plotter: Plotter,
-                              rsu_x_position: float,
-                              rsu_y_position: float,
-                              title_appendix: str) -> None:
+def position_packetLoss_graph(
+        position_netstat_dict: dict[float, PositionNetworkStatus],
+        plotter: Plotter,
+        rsu_x_position: float,
+        rsu_y_position: float,
+        title_appendix: str) -> None:
     """
     this method creating position X packet-loss graphs
     :return:
@@ -1004,31 +1026,45 @@ def position_packetLoss_graph(position_netstat_dict: dict[float, PositionNetwork
 
     z_loss = [0] * len(z_loss)  # this line removing z values from packets
 
-    plotter.creating_3d_scatter(x_loss, y_loss, z_loss, [1] * len(z_loss), rsu_x_position=rsu_x_position,
-                                rsu_y_position=rsu_y_position,
-                                boolean_point=True,
-                                title="Packet-loss X Position(" + title_appendix + ")",
-                                size_of_points=Conf.packet_loss_point_size,
-                                color_of_points=Conf.packet_loss_color)
+    plotter.creating_3d_scatter(
+        x_loss,
+        y_loss,
+        z_loss,
+        [1] * len(z_loss),
+        rsu_x_position=rsu_x_position,
+        rsu_y_position=rsu_y_position,
+        boolean_point=True,
+        title="Packet-loss X Position(" + title_appendix + ")",
+        size_of_points=Conf.packet_loss_point_size,
+        color_of_points=Conf.packet_loss_color)
 
-    plotter.griding_points(x_grid, y_grid, z_grid, loss_grid, rsu_x_position, rsu_y_position,
-                           rgba_number=1,
-                           title="Packet-loss rate x Position (" + str(
-                               Conf.position_reporter_grid_x_size) + "m grid)(" + title_appendix + ")",
-                           x_label="x-axis"
-                           , y_label="y-axis", z_label="Packet Loss")
+    plotter.griding_points(
+        x_grid,
+        y_grid,
+        z_grid,
+        loss_grid,
+        rsu_x_position, rsu_y_position,
+        rgba_number=1,
+        title="Packet-loss rate x Position (" + str(
+            Conf.position_reporter_grid_x_size) + "m grid)(" + title_appendix + ")",
+        x_label="x-axis"
+        , y_label="y-axis", z_label="Packet Loss")
 
 
-def position_delay_graph(position_netstat_dict: dict[float, PositionNetworkStatus], plotter: Plotter,
-                         rsu_x_position: float,
-                         rsu_y_position: float,
-                         title_appendix: str) -> None:
+def position_delay_graph(
+        position_netstat_dict: dict[float, PositionNetworkStatus],
+        plotter: Plotter,
+        rsu_x_position: float,
+        rsu_y_position: float,
+        title_appendix: str) -> None:
     """
     this method creating delay X position graphs
     :return:
     """
 
     delay_list = [position_netstat_dict[position_time].delay for position_time in position_netstat_dict]
+    # Remove -1 delay values (corresponding to packet loss)
+    delay_list = list(filter(lambda x: x >= 0., delay_list))
     x = [position_netstat_dict[position_time].x_tf for position_time in position_netstat_dict]
     y = [position_netstat_dict[position_time].y_tf for position_time in position_netstat_dict]
     z = [position_netstat_dict[position_time].z_tf for position_time in position_netstat_dict]
@@ -1036,23 +1072,39 @@ def position_delay_graph(position_netstat_dict: dict[float, PositionNetworkStatu
     z = [0] * len(z)  # removing z
 
     # packet to packet delay graph
-    plotter.creating_3d_scatter(x, y, z, delay_list, rsu_x_position, rsu_y_position,
-                                size_of_points=Conf.position_delay_packet_point_size,
-                                title="Delay x Position(" + title_appendix + ")")
+    plotter.creating_3d_scatter(
+        x,
+        y,
+        z,
+        delay_list,
+        rsu_x_position,
+        rsu_y_position,
+        size_of_points=Conf.position_delay_packet_point_size,
+        title="Delay x Position(" + title_appendix + ")")
 
     # grid graphs ( histogram )
-    plotter.griding_points(x, y, z, delay_list, rsu_x_position, rsu_y_position, rgba_number=100,
-                           title="Delay x Position (" + str(
-                               Conf.position_reporter_grid_x_size) + "m grid)(" + title_appendix + ")",
-                           x_label="x-axis", y_label="Y-axis", z_label="delay value")
+    plotter.griding_points(
+        x,
+        y,
+        z,
+        delay_list,
+        rsu_x_position,
+        rsu_y_position,
+        rgba_number=100,
+        title="Delay x Position (" + str(
+            Conf.position_reporter_grid_x_size) + "m grid)(" + title_appendix + ")",
+        x_label="x-axis", y_label="Y-axis", z_label="delay value")
 
     # replacing None values with 0 in delay list
     tmp_delay_list = [0 if item is None else item for item in delay_list]
 
     # position-delay real-time graph
-    plotter.create_animated_3d_linear_plot_with_matplotlib(np.array(x), np.array(y), np.array(tmp_delay_list),
-                                                           " Delay & Packet loss x Position (Real-time)(" + title_appendix + ")",
-                                                           "x",
-                                                           "y",
-                                                           "delay", linelabel="delay",
-                                                           pointlabel="packet loss")
+    plotter.create_animated_3d_linear_plot_with_matplotlib(
+        np.array(x),
+        np.array(y),
+        np.array(tmp_delay_list),
+        " Delay & Packet loss x Position (Real-time)(" + title_appendix + ")",
+        "x",
+        "y",
+        "delay", linelabel="delay",
+        pointlabel="packet loss")
