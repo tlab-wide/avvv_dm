@@ -1,6 +1,7 @@
 import os
 from abc import ABC
 from typing import List
+import gc
 
 import pandas
 
@@ -20,15 +21,16 @@ class Node(ABC):
     def __init__(self, csv_file_name: str):
         self._csv_file_name: str = csv_file_name
         self._its_station_id: str = self.__get_its_station_id()
-        self._csv_rows = self.__read_csv_file()
+        self._csv_rows: pandas.DataFrame = None
         self._dm_protocol_type = None
+        self.__read_csv_file()
 
-    def __read_csv_file(self) -> pandas.DataFrame:
+    def __read_csv_file(self) -> None:
         """
         This function reading csv file and returning list of csv rows
         """
-        rows = csv_general_tools.read_csv_file(os.path.join(Conf.csv_files_directory, self._csv_file_name))
-        return rows
+        self._csv_rows = csv_general_tools.read_csv_file(
+            os.path.join(Conf.csv_files_directory, self._csv_file_name))
 
     def __get_its_station_id(self):
         try:
@@ -40,7 +42,22 @@ class Node(ABC):
             return station_id
         except Exception as e:
             raise f"Can't get the station id of {self.get_csv_file_name()}. Error message: {e}"
-        
+
+    def get_station_id(self):
+        """
+        this method return station id of Rsu
+        :return:
+        """
+        return self._its_station_id
+    
+    def read_csv_rows(self) -> None:
+        self.__read_csv_file()
+
+    def remove_csv_rows(self) -> None:
+        del self._csv_rows
+        gc.collect()
+        self._csv_rows = None
+
     def get_csv_rows(self) -> pandas.DataFrame:
         return self._csv_rows
 
@@ -54,7 +71,7 @@ class Node(ABC):
     def get_dm_protocol_type(self) -> str:
         """return type of dm protocol"""
         return self._dm_protocol_type
-
+    
 
 class RSU(Node):
     def __init__(self, csv_file_address: str):
@@ -73,13 +90,6 @@ class RSU(Node):
         """
         return self.__rsu_position_x, self.__rsu_position_y
 
-    def get_station_id(self):
-        """
-        this method return station id of Rsu
-        :return:
-        """
-        return self._its_station_id
-
     def get_csv_dm_info(self):
         """
 
@@ -87,39 +97,12 @@ class RSU(Node):
         """
         topic = self.get_topic_name()
         
-        match self._dm_protocol_type:
-            case "ObjectInfo":
-                dm_message = ObjectInfo
-                create_dm_message_array = ObjectInfo.create_object_info_array
-            case "SignalInfo":
-                dm_message = SignalInfo
-                create_dm_message_array = SignalInfo.create_signal_info_array
-            case "FreespaceInfo":
-                dm_message = FreespaceInfo
-                create_dm_message_array = FreespaceInfo.create_freespace_info_array
-            case _:
-                raise Exception("Protocol not specified when getting rows")
-
-        msg_infos = []
         row_length = self._csv_rows.shape[1]
         generation_time_column = row_length - 2
+
         packet_message_groups = self._csv_rows.groupby(by=generation_time_column).groups
         
-        for _, indices in packet_message_groups.items():
-            dm_csv_row_message_time_stamp = dm_interface.get_epochtime(
-                self._csv_rows.loc[indices[0]])
-        
-            dm_message_array = create_dm_message_array([
-                dm_message(self._csv_rows.loc[index])
-                for index in indices])
-
-            msg_info = [
-                dm_csv_row_message_time_stamp,
-                dm_message_array]
-        
-            msg_infos.append(msg_info)
-
-        return topic, msg_infos
+        return topic, packet_message_groups
 
     def get_topic_name(self):
         """
@@ -211,12 +194,14 @@ class OBU(Node):
                 rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
             case "SignalInfo":
                 rsu_indicator_column = dm_interface.get_signal_crp_id_column()
-                rsu_indicator = Conf.rsu_info[str(rsu_id)]["crp_id"]
+                rsu_indicator = int(Conf.rsu_info[str(rsu_id)]["crp_id"])
             case _:
                 raise Exception("Protocol not specified when getting rows by RSU ID")
         
         packet_message_groups = self._csv_rows.groupby(by=rsu_indicator_column).groups
         
+        # print(packet_message_groups[rsu_indicator])
+
         return self._csv_rows.loc[packet_message_groups[rsu_indicator]]
         
 
