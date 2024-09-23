@@ -6,8 +6,14 @@ def get_object_id(dataframe_row) -> int:
     This function gets each (object_info or freespace_info)
     dataframe row of RSU or OBU and returns object ID in it
     """
-    return int(dataframe_row[0], 16)
-
+    try:
+        return int(dataframe_row[0], 16)
+    except TypeError: 
+        # Sometimes pandas doesn't load this column as string,
+        # so we should do this for ourselves
+        # TODO Load CSV files with explicit dtypes provided to
+        # remove the line below and the try/except statement
+        return int(str(dataframe_row[0]), 16)
 
 def get_object_timestamp_its(dataframe_row) -> int:
     """
@@ -139,7 +145,7 @@ def get_freespace_information_source_list_column() -> int:
     """
     Return the column ID for freespace information source list
     """
-    return 53
+    return 52
 
 
 def get_freespace_information_source_list(dataframe_row) -> list:
@@ -147,7 +153,7 @@ def get_freespace_information_source_list(dataframe_row) -> list:
     This function gets the CSV row of OBU and returns the information source
     list of the sensor that sent this DM message
     """
-    return dataframe_row[53]
+    return dataframe_row[52]
 
 
 def get_rsu_position_in_xy(dataframe_row: str) -> Tuple[int, int]:
