@@ -4,7 +4,7 @@ there are some necessary general functions in this module
 import shutil
 import os
 import math
-from typing import List, Dict
+from typing import List
 import mgrs
 import csv
 

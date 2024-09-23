@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from rosbags.typesys.types import builtin_interfaces__msg__Time as builtin_time
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TFMsg
 
 from general_tools import euclidean_distance
@@ -340,7 +339,6 @@ class NetworkStatus:
             distance_list.append(distance)
             delay_list.append(pnc.delay)
             packet_loss_list.append(pnc.packet_loss)
-            print(pnc.packet_loss)
 
             # Add to dicts_list
             dicts_list.append(dict(distance=distance, delay=pnc.delay, packet_loss=pnc.packet_loss))
@@ -1062,9 +1060,9 @@ def position_delay_graph(
     :return:
     """
 
+    # Get delay values
     delay_list = [position_netstat_dict[position_time].delay for position_time in position_netstat_dict]
-    # Remove -1 delay values (corresponding to packet loss)
-    delay_list = list(filter(lambda x: x >= 0., delay_list))
+    
     x = [position_netstat_dict[position_time].x_tf for position_time in position_netstat_dict]
     y = [position_netstat_dict[position_time].y_tf for position_time in position_netstat_dict]
     z = [position_netstat_dict[position_time].z_tf for position_time in position_netstat_dict]

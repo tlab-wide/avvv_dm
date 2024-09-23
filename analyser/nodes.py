@@ -5,12 +5,11 @@ import gc
 
 import pandas
 
-from general_tools import creating_directory, merge_dicts, extract_id_from_csv_file_name
+from general_tools import creating_directory
 from network_status import NetworkStatus
 from config_avvv import Conf
 from plotting import Plotter
 from csv_interface import csv_general_tools, dm_interface
-from ros2_interface.ros2msg_gen import ObjectInfo, SignalInfo, FreespaceInfo
 
 
 class Node(ABC):
@@ -200,8 +199,6 @@ class OBU(Node):
         
         packet_message_groups = self._csv_rows.groupby(by=rsu_indicator_column).groups
         
-        # print(packet_message_groups[rsu_indicator])
-
         return self._csv_rows.loc[packet_message_groups[rsu_indicator]]
         
 
