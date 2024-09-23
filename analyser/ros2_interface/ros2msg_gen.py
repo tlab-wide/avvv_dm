@@ -85,7 +85,10 @@ class TimeStamp:
         self.raw_time_stamp = time_stamp
         self.seconds = time_stamp // 1000
         self.nanoseconds = int((time_stamp % 1000) * 1e6)  # 1e6 nanoseconds in a millisecond
-        self.ros_time_stamp = builtin_time(sec=self.seconds, nanosec=self.nanoseconds)
+        
+        self.ros_time_stamp = builtin_time(
+            sec=self.seconds,
+            nanosec=self.nanoseconds)
 
 
 class NetworkStatus:
@@ -98,6 +101,7 @@ class NetworkStatus:
             packet_count,
             time_stamp,
             medium):
+
         self.msg = NetworkStatusMsg(
             delay=delay,
             jitter=jitter,
@@ -105,15 +109,7 @@ class NetworkStatus:
             packet_loss=packet_loss,
             packet_count=packet_count,
             medium=medium,
-            stamp=TimeStamp(time_stamp).ros_time_stamp
-        )
-        # self.msg.delay = delay
-        # self.msg.jitter = jitter
-        # self.msg.rssi = rssi
-        # self.msg.packet_loss = packet_loss
-        # self.msg.packet_count = packet_count
-        # self.msg.medium = medium 
-        # self.msg.stamp = TimeStamp(time_stamp).ros_time_stamp
+            stamp=TimeStamp(time_stamp).ros_time_stamp)
 
 
 class ObjectInfo:
@@ -122,23 +118,78 @@ class ObjectInfo:
         self.__build_msg()
     
     def __build_msg(self):
-        self.msg = ObjectInfoMsg()
-        self.msg.id.value = dm_interface.get_object_id(self.dataframe_row)
-        self.msg.time.value = dm_interface.get_object_timestamp_its(self.dataframe_row)
-        object_class = ObjectClass()
-        object_class.id.value = dm_interface.get_object_class_id(self.dataframe_row)
-        object_class.confidence.value = dm_interface.get_object_class_confidence(self.dataframe_row)
-        self.msg.object_class.append(object_class)
-        self.msg.existency.value = dm_interface.get_class_existence_confidence(self.dataframe_row)
-        self.msg.object_location.geodetic_system.value = dm_interface.get_object_geodetic_system(self.dataframe_row)
-        self.msg.object_location.latitude.value = dm_interface.get_object_latitude(self.dataframe_row)
-        self.msg.object_location.longitude.value = dm_interface.get_object_longitude(self.dataframe_row)
-        self.msg.object_location.altitude.value = dm_interface.get_object_altitude(self.dataframe_row)
-        self.msg.orientation.value = dm_interface.get_object_orientation(self.dataframe_row)
         object_size = dm_interface.get_object_size(self.dataframe_row)
-        self.msg.size.length.value.value = object_size[0]
-        self.msg.size.width.value.value = object_size[1]
-        self.msg.size.height.value.value = object_size[2]
+        self.msg = ObjectInfoMsg(
+            id=ObjectId(
+                value=dm_interface.get_object_id(self.dataframe_row)),
+            time=TimestampIts(
+                value=dm_interface.get_object_timestamp_its(self.dataframe_row)),
+            object_class=[
+                ObjectClass(
+                    id=ClassId(
+                        value=dm_interface.get_object_class_id(self.dataframe_row)),
+                    confidence=ClassConfidence(
+                        value=dm_interface.get_object_class_confidence(self.dataframe_row)),
+                    subclass_type=None,
+                    subclass_confidence=None)],
+            existency=ExistenceConfidence(
+                value=dm_interface.get_existence_confidence(self.dataframe_row)),
+            object_location=Location(
+                geodetic_system=GeodeticSystem(value=dm_interface.get_object_geodetic_system(self.dataframe_row)),
+                latitude=Latitude(value=dm_interface.get_object_latitude(self.dataframe_row)),
+                longitude=Longitude(value=dm_interface.get_object_longitude(self.dataframe_row)),
+                altitude=Altitude(value=dm_interface.get_object_altitude(self.dataframe_row)),
+                crp_id=None,
+                dx_crp=None,
+                dy_crp=None,
+                dh_crp=None,
+                lane_count=None,
+                lane_position=None,
+                lane_lateral_position=None,
+                crp_id_begin=None,
+                crp_id_end=None,
+                lane_vertical_position=None,
+                lane_id=None,
+                dx_lane=None,
+                dy_lane=None,
+                dh_lane=None,
+                semi_axis_lane_major=None,
+                semi_axis_lane_minor=None,
+                orientation=None,
+                altitude_accuracy=None),
+            ref_point=None,
+            direction=None,
+            speed=None,
+            yaw_rate=None,
+            acceleration=None,
+            orientation=WGS84Angle(
+                value=WGS84AngleValue(
+                    value=dm_interface.get_object_orientation(self.dataframe_row)),
+                accuracy=None),
+            size=ObjectSize(
+                length=ObjectDimension(
+                    value=ObjectDimensionValue(value=object_size[0]),
+                    accuracy=None),
+                width=ObjectDimension(
+                    value=ObjectDimensionValue(value=object_size[1]),
+                    accuracy=None),
+                height=ObjectDimension(
+                    value=ObjectDimensionValue(value=object_size[2]),
+                    accuracy=None)),
+            color=None,
+            shift_position=None,
+            steering_angle_front=None,
+            steering_angle_rear=None,
+            brake_state=None,
+            auxiliary_brake_state=None,
+            throttle_position=None,
+            exterior_lights=None,
+            control_system_states=None,
+            vehicle_role=None,
+            vehicle_extended_info=None,
+            towing_vehicle=None,
+            information_source_list=None
+        )
 
     @staticmethod
     def create_object_info_array(object_infos: list[ObjectInfoMsg]) -> ObjectInfoArray:
