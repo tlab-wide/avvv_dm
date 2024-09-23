@@ -56,25 +56,21 @@ class NetworkStatus:
         self.receiver_pkt_dict, \
         self.pkt_delays = self.get_pair_pkt_list_with_delay()
 
-        # self.jitter_list = self.measuring_jitter_rfc3550() # todo : this is not completed
+        # self.jitter_list = self.measuring_jitter_rfc3550() # TODO This is not completed
 
-        # self.rssi_list = self.measuring_rssi()  # todo : this is not completed
+        # self.rssi_list = self.measuring_rssi()  # TODO This is not completed
 
-        input("before create_position_netstat_dict")
         self.position_netstat_dict = self.create_position_netstat_dict()
-        input("after create_position_netstat_dict")
 
-        # self.delete_far_packets()  # todo: uncomment this when tf messages do not exist
+        # self.delete_far_packets()  # TODO Uncomment this when tf messages do not exist
 
         # print("size packets after delete : ", len(self.pair_packet_list_with_delay))
 
         self.plotter = Plotter(self.get_plots_directory())
 
-        # if Conf.position_reporter: # todo : uncomment this two line when you have tf messages
         self.plot_position_graphs()
 
-        # if Conf.distance_reporters: # todo :  uncomment this two line when you have tf messages
-        self.plot_distance_graphs()  # todo: getting distance list with converting this function to two function
+        self.plot_distance_graphs()  # TODO Getting distance list with converting this function to two function
 
         input("before create_ros2_type_network_status")
         self.network_status_list: list = self.create_ros2_type_network_status()
@@ -84,7 +80,7 @@ class NetworkStatus:
         self.dmn_list = self.create_ros2_type_dmn()
         input("after create_ros2_type_dmn")        
 
-        # if Conf.time_reporter: # todo: this is not completed
+        # if Conf.time_reporter: # TODO This is not completed
         #     self.plotting_time_graphs()
 
     def get_topic(self, topic_name: str):
@@ -512,7 +508,7 @@ class NetworkStatus:
 
         return pkt_delays
 
-    def measuring_jitter_time(delays_list: list, draw=False) -> float:
+    def measure_jitter_time(self, delays_list: list, draw=False) -> float:
         """
 
         :param delays_list:
@@ -590,7 +586,7 @@ class NetworkStatus:
             key = int(pkt_time_from_start / Conf.network_status_time)
 
             delay = self.pkt_delays[packet_index]
-            packet_loss = self.position_netstat_dict[packet_timestamp]
+            packet_loss = self.position_netstat_dict[packet_timestamp].packet_loss
 
             # Keep current packet's epoch time
             try:
@@ -638,9 +634,9 @@ class NetworkStatus:
 
             if key in network_status_delay_dict.keys() and len(network_status_delay_dict[key]) != 0:
                 delay_avg = np.average(network_status_delay_dict[key])
-                jitter = self.measuring_jitter_time(
-                    delays_list=network_status_delay_dict[key],
-                    draw=False)
+                jitter = self.measure_jitter_time(
+                    network_status_delay_dict[key],
+                    False)
             else:
                 delay_avg = -1.0
                 jitter = -1.0
