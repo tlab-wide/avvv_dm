@@ -153,8 +153,8 @@ class ObjectInfo:
                 dx_lane=None,
                 dy_lane=None,
                 dh_lane=None,
-                semi_axis_lane_major=None,
-                semi_axis_lane_minor=None,
+                semi_axis_length_major=None,
+                semi_axis_length_minor=None,
                 orientation=None,
                 altitude_accuracy=None),
             ref_point=None,
@@ -219,10 +219,6 @@ class SignalInfo:
             min_time_to_change=MinTimeToChange(value=signal_light_info[2]),
             max_time_to_change=MaxTimeToChange(value=signal_light_info[3])
         )
-        # signal_light_info_msg.main_light.value = signal_light_info[0]
-        # signal_light_info_msg.arrow_light.value = signal_light_info[1]
-        # signal_light_info_msg.min_time_to_change.value = signal_light_info[2]
-        # signal_light_info_msg.max_time_to_change.value = signal_light_info[3]
         self.msg = SignalInfoMsg(
             crp_id=CrpId(value=dm_interface.get_signal_crp_id(self.dataframe_row)),
             signal_id_list=[SignalId(value=beacon_id) for beacon_id in dm_interface.get_signal_beacon_id(self.dataframe_row)],
@@ -233,11 +229,6 @@ class SignalInfo:
             count_down_stop_flag=None,
             signal_light_info_list=[signal_light_info_msg]
         )
-        # self.msg.crp_id.value = dm_interface.get_signal_crp_id(self.dataframe_row)
-        # self.msg.signal_id_list.append(
-        #     [SignalId(value=beacon_id) for beacon_id in dm_interface.get_signal_beacon_id(self.dataframe_row)])
-        # self.msg.time.value = dm_interface.get_signal_timestamp_its(self.dataframe_row)
-        # self.msg.signal_light_info_list.append(signal_light_info_msg)
 
     @staticmethod
     def create_signal_info_array(signal_infos: list[SignalInfoMsg]) -> SignalInfoArray:
@@ -260,19 +251,60 @@ class FreespaceInfo:
         self.__build_msg()
     
     def __build_msg(self):
-        self.msg = FreespaceInfoMsg()
-        self.msg.id.value = dm_interface.get_object_id(self.dataframe_row)
-        self.msg.time.value = dm_interface.get_object_timestamp_its(self.dataframe_row)
         position_begin = dm_interface.get_freespace_position_begin(self.dataframe_row)
         position_end = dm_interface.get_freespace_position_end(self.dataframe_row)
-        self.msg.position_begin.geodetic_system.value = position_begin[0]
-        self.msg.position_begin.latitude.value = position_begin[1]
-        self.msg.position_begin.longitude.value = position_begin[2]
-        self.msg.position_begin.altitude.value = position_begin[3]
-        self.msg.position_end.geodetic_system.value = position_end[0]
-        self.msg.position_end.latitude.value = position_end[1]
-        self.msg.position_end.longitude.value = position_end[2]
-        self.msg.position_end.altitude.value = position_end[3]
+        self.msg = FreespaceInfoMsg(
+            id=ObjectId(
+                value=dm_interface.get_object_id(self.dataframe_row)),
+            time=TimestampIts(
+                value=dm_interface.get_object_timestamp_its(self.dataframe_row)),
+            position_begin=Location(
+                geodetic_system=GeodeticSystem(value=position_begin[0],
+                latitude=Latitude(value=position_begin[1]),
+                longitude=Longitude(value=position_begin[2]),
+                altitude=Altitude(value=position_begin[3]),
+                crp_id=None,
+                dx_crp=None,
+                dy_crp=None,
+                dh_crp=None,
+                lane_count=None,
+                lane_position=None,
+                lane_lateral_position=None,
+                crp_id_begin=None,
+                crp_id_end=None,
+                lane_vertical_position=None,
+                lane_id=None,
+                dx_lane=None,
+                dy_lane=None,
+                dh_lane=None,
+                semi_axis_length_major=None,
+                semi_axis_length_minor=None,
+                orientation=None,
+                altitude_accuracy=None),
+            position_end=Location(
+                geodetic_system=GeodeticSystem(value=position_end[0]),
+                latitude=Latitude(value=position_end[1]),
+                longitude=Longitude(value=position_end[2]),
+                altitude=Altitude(value=position_end[3]),
+                crp_id=None,
+                dx_crp=None,
+                dy_crp=None,
+                dh_crp=None,
+                lane_count=None,
+                lane_position=None,
+                lane_lateral_position=None,
+                crp_id_begin=None,
+                crp_id_end=None,
+                lane_vertical_position=None,
+                lane_id=None,
+                dx_lane=None,
+                dy_lane=None,
+                dh_lane=None,
+                semi_axis_length_major=None,
+                semi_axis_length_minor=None,
+                orientation=None,
+                altitude_accuracy=None),
+        )
 
     @staticmethod
     def create_freespace_info_array(freespace_infos: list[FreespaceInfoMsg]) -> FreespaceInfoArray:
