@@ -35,7 +35,6 @@ def tf_type_reader(rosbag_folder_path: str) -> dict:
             except:
                 print("cannot read tf type ")
 
-        print("tf_message_length: ", len(tf_messages))
         return tf_messages
 
 
