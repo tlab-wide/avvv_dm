@@ -258,8 +258,10 @@ class FreespaceInfo:
                 value=dm_interface.get_object_id(self.dataframe_row)),
             time=TimestampIts(
                 value=dm_interface.get_object_timestamp_its(self.dataframe_row)),
+            existency=None,
+            minimal_detectable_size=None,
             position_begin=Location(
-                geodetic_system=GeodeticSystem(value=position_begin[0],
+                geodetic_system=GeodeticSystem(value=position_begin[0]),
                 latitude=Latitude(value=position_begin[1]),
                 longitude=Longitude(value=position_begin[2]),
                 altitude=Altitude(value=position_begin[3]),
@@ -304,6 +306,10 @@ class FreespaceInfo:
                 semi_axis_length_minor=None,
                 orientation=None,
                 altitude_accuracy=None),
+            length=None,
+            id_begin=None,
+            id_end=None,
+            information_source_list=None
         )
 
     @staticmethod
