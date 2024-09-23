@@ -2,8 +2,6 @@
 This module is for merging DM and ROSBAG files into one ROSBAG file and
 creating some reports for the topics, files, and network status
 """
-import gc
-
 import topics
 from nodes import NodesManager
 from ros2_interface.ros2file_gen import create_rosbag2_file_from_dmAndRos2_files
@@ -45,7 +43,7 @@ def dm_merger() -> None:
         if len(rsu_files) == 0 or len(obu_files) == 0:
             raise Exception("RSU or OBU files not found in config file!")
 
-        print(dm_protocol)
+        print(f"Working on {dm_protocol}")
 
         # Read CSV files and create RSU and OBU objects
         nodes_manager = NodesManager(obu_files, rsu_files)  # TODO Add empty CSV exception (when CSV is empty we get error)
@@ -60,14 +58,16 @@ def dm_merger() -> None:
         for obu in nodes_manager.get_obu_nodes():
             obu.set_dm_protocol_type(dm_protocol)
             for rsu in nodes_manager.get_rsu_nodes():
-                input(f"before: {obu.get_station_id()}, {rsu.get_station_id()}")
                 rsu_station_id = rsu.get_station_id()
                 obu_id = obu.get_obu_id()
                 sender_cap = rsu.get_csv_rows()
                 receiver_cap = obu.get_obu_csv_rows_by_rsu_id(rsu_station_id)
 
                 if len(sender_cap) == 0 or len(receiver_cap) == 0:
-                    print(f"The number of RSU or OBU packets specified in the protocol is zero. File names: {rsu.get_csv_file_name()}, {obu.get_csv_file_name()}")
+                    print(
+                        f"""The number of RSU or OBU packets specified in the
+                          protocol is zero. File names: {rsu.get_csv_file_name()}
+                          , {obu.get_csv_file_name()}""")
                     continue
                 
                 obu_rsu_network_status = NetworkStatus(rsu_station_id, obu_id, sender_cap, receiver_cap, dm_protocol)
@@ -85,7 +85,6 @@ def dm_merger() -> None:
                 dmn_topic = obu_rsu_network_status.get_topic(f"{dm_protocol}n")
                 ros2type_dmn_list = obu_rsu_network_status.get_ros2type_dmn_list()
                 dm_information[dmn_topic] = ros2type_dmn_list
-                input(f"after: {obu.__get_its_station_id()}, {rsu.__get_its_station_id()}")
 
     # ROSBAG topics
     ros_dict_information = topics.collect_topics_from_rosbag2_file(
