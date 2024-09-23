@@ -466,11 +466,14 @@ class Plotter:
             # Create a LinearSegmentedColormap object
             my_cmap = mcolors.LinearSegmentedColormap.from_list('blue-green-yellow-red', colors)
 
-            sctt = ax.scatter3D(x_scatter, y_scatter, z_scatter,
-                                c=values,
-                                cmap=my_cmap,
-                                s=size_of_points,
-                                marker='.')
+            sctt = ax.scatter3D(
+                x_scatter,
+                y_scatter,
+                z_scatter,
+                c=values,
+                cmap=my_cmap,
+                s=size_of_points,
+                marker='.')
         else:
             sctt = ax.scatter(x_scatter, y_scatter, z_scatter,
                               c=color_of_points,
