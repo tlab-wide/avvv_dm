@@ -8,7 +8,7 @@ from rosbags.serde import deserialize_cdr
 from rosbags.rosbag2 import Reader
 
 
-def tf_type_reader(rosbag_folder_path: str) -> dict:
+def tf_type_reader(rosbag_folder_path: str) -> list:
     """
 
     :param rosbag_folder_path:
@@ -16,7 +16,7 @@ def tf_type_reader(rosbag_folder_path: str) -> dict:
     """
     with Reader(rosbag_folder_path) as reader:
 
-        tf_messages = {}
+        tf_messages = []
 
         for connection, timestamp, rawdata in reader.messages():
 
@@ -29,7 +29,7 @@ def tf_type_reader(rosbag_folder_path: str) -> dict:
                 key = msg.transforms[0].header.stamp.sec + \
                     msg.transforms[0].header.stamp.nanosec / 1e+9 # Convert from ns to seconds
 
-                tf_messages[key] = msg
+                tf_messages.append((key, msg))
 
 
             except:
