@@ -34,6 +34,22 @@ def write_messages(
               topic : {topic} and error : {topic_error}""")
 
 
+def write_netstat_messages(
+        writer: Writer,
+        topic: str,
+        netstat_list: list[tuple]):
+    
+    netstat_messages = [
+        (
+            netstat[0],
+            NetworkStatus(*netstat[1])
+        )
+        for netstat in netstat_list
+    ]
+
+    write_messages(writer, topic, netstat_messages)
+
+
 def write_obu_messages(
         writer: Writer,
         topic: str,
@@ -140,12 +156,13 @@ def create_bag_file(
     with Writer(output_directory_address + '/rosbag2_' + ros_file_name) as writer:
 
         # Write CSV files information to output rosbag2 file
-        for topic in csv_dict_input.keys():
+        for topic in list(csv_dict_input.keys()):
             if "OBU" in topic:
                 if Conf.network_status_topic_name_syntax in topic:
-                    write_messages(
+                    write_netstat_messages(
                         writer,
-                        csv_dict_input[topic], topic)
+                        topic,
+                        csv_dict_input[topic])
                 else:
                     write_obu_messages(
                         writer,
@@ -160,6 +177,8 @@ def create_bag_file(
                     csv_dict_input[topic][1].get_csv_rows(),
                     csv_dict_input[topic][2])
 
+            del csv_dict_input[topic]
+            
         # Write ROSBAG files information to output ROSBAG file
         for topic in ros_dict_input.keys():
 
