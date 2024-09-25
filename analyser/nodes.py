@@ -10,6 +10,7 @@ from network_status import NetworkStatus
 from config_avvv import Conf
 from plotting import Plotter
 from csv_interface import csv_general_tools, dm_interface
+from ros2_interface.ros2msg_gen import ObjectInfo, FreespaceInfo, SignalInfo 
 
 
 class Node(ABC):
@@ -93,21 +94,19 @@ class RSU(Node):
         """
 
         :return:
-        """
-        topic = self.get_topic_name()
-        
+        """        
         row_length = self._csv_rows.shape[1]
         generation_time_column = row_length - 2
 
         packet_message_groups = self._csv_rows.groupby(by=generation_time_column).groups
         
-        return topic, packet_message_groups
+        return packet_message_groups
 
-    def get_topic_name(self):
+    def get_topic_name(self, topic_name: str):
         """
         Returns topic name of DM messages for this RSU
         """
-        topic = f"/RSU_{str(self._its_station_id)}/{self._dm_protocol_type}"
+        topic = f"/RSU_{str(self._its_station_id)}/{topic_name}"
         return topic
 
     def get_plots_directory_name(self) -> str:
@@ -187,10 +186,10 @@ class OBU(Node):
         match self._dm_protocol_type:
             case "ObjectInfo":
                 rsu_indicator_column = dm_interface.get_object_information_source_list_column()
-                rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
+                rsu_indicator = Conf.rsu_info[str(rsu_id)]["information_source_list"]
             case "FreespaceInfo":
                 rsu_indicator_column = dm_interface.get_freespace_information_source_list_column()
-                rsu_indicator = Conf.rsu_info[str(rsu_id)]["source_id_list"]
+                rsu_indicator = Conf.rsu_info[str(rsu_id)]["information_source_list"]
             case "SignalInfo":
                 rsu_indicator_column = dm_interface.get_signal_crp_id_column()
                 rsu_indicator = int(Conf.rsu_info[str(rsu_id)]["crp_id"])
@@ -198,7 +197,7 @@ class OBU(Node):
                 raise Exception("Protocol not specified when getting rows by RSU ID")
         
         packet_message_groups = self._csv_rows.groupby(by=rsu_indicator_column).groups
-        
+
         return self._csv_rows.loc[packet_message_groups[rsu_indicator]]
         
 

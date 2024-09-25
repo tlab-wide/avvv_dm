@@ -202,7 +202,7 @@ class ObjectInfo:
             network_status: NetworkStatus) -> ObjectInfoNMsg:
         object_info_n = ObjectInfoNMsg(
             object_info_array=object_info_array,
-            network_status=network_status)
+            network_status=network_status.msg)
         return object_info_n
 
 

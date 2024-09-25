@@ -4,7 +4,7 @@ creating some reports for the topics, files, and network status
 """
 import topics
 from nodes import NodesManager
-from ros2_interface.ros2file_gen import create_rosbag2_file_from_dmAndRos2_files
+from ros2_interface.ros2file_gen import create_bag_file
 from config_avvv import Conf
 from network_status import NetworkStatus
 
@@ -20,7 +20,7 @@ def dm_merger() -> None:
     :return:
     """
 
-    dm_information: list = [] # This dictionary keeps information of CSV topics
+    dm_information: dict = {} # This dictionary keeps information of CSV topics
     ros_dict_information: dict # This dictionary keeps information of ROSBAG topics
 
     dm_protocols = Conf.dm_protocols
@@ -50,11 +50,14 @@ def dm_merger() -> None:
 
         # Create /RSU_#/[dm_protocol] topics in final ROSBAG
         for rsu in nodes_manager.get_rsu_nodes():
+            print(f"Working on RSU: {rsu.get_station_id()}")
             rsu.set_dm_protocol_type(dm_protocol)
-            topic, rsu_dm_msgs = rsu.get_csv_dm_info()
-            dm_information.append(("rsu", dm_protocol, topic, rsu_dm_msgs))
+            topic = rsu.get_topic_name(topic_syntax)
+            rsu_dm_msg_grps = rsu.get_csv_dm_info()
+            # dm_information.append(("rsu", dm_protocol, topic, rsu_dm_msgs))
+            dm_information[topic] = (dm_protocol, rsu, rsu_dm_msg_grps)
 
-        # Create /OBU_#/RSU_#/network_status and /OBU_#/RSU_#/[dm_protocol]n topics in final ROSBAG
+        # Create /OBU_#/RSU_#/[topic_syntax]/network_status and /OBU_#/RSU_#/[topic_syntax]n topics in final ROSBAG
         for obu in nodes_manager.get_obu_nodes():
             obu.set_dm_protocol_type(dm_protocol)
             for rsu in nodes_manager.get_rsu_nodes():
@@ -75,25 +78,29 @@ def dm_merger() -> None:
                 # Add network status object to RSU object
                 rsu.append_network_status(obu_rsu_network_status)
 
-                # Generate /OBU_#/RSU_#/[dm_protocol]/network_status topic
+                # Generate /OBU_#/RSU_#/[topic_syntax]/network_status topic
                 netstat_topic = obu_rsu_network_status.get_topic(
                     topic_syntax + "/" + Conf.network_status_topic_name_syntax)
-                ros2type_network_status_list = obu_rsu_network_status.get_ros2type_network_status_list()
+                ros2type_network_status_list = obu_rsu_network_status\
+                    .get_ros2type_network_status_list()
                 dm_information[netstat_topic] = ros2type_network_status_list
 
-                # Generate /OBU_#/RSU_#/[dm_protocol]n topic
-                dmn_topic = obu_rsu_network_status.get_topic(f"{dm_protocol}n")
-                ros2type_dmn_list = obu_rsu_network_status.get_ros2type_dmn_list()
-                dm_information[dmn_topic] = ros2type_dmn_list
+                # Generate /OBU_#/RSU_#/[topic_syntax]n topic
+                dmn_topic = obu_rsu_network_status.get_topic(f"{topic_syntax}n")
+                # ros2type_dmn_list = obu_rsu_network_status.get_ros2type_dmn_list()
+                # dm_information[dmn_topic] = ros2type_dmn_list
+                dm_information[dmn_topic] = (
+                    dm_protocol,
+                    obu_rsu_network_status.position_netstat_dict)
 
     # ROSBAG topics
-    ros_dict_information = topics.collect_topics_from_rosbag2_file(
+    ros_dict_information = topics.collect_topics_from_bag_file(
         Conf.ros2_files_path,
         Conf.ros2_topics,
         Conf.equivalent_topics)
 
     # Create output ROSBAG file
-    create_rosbag2_file_from_dmAndRos2_files(
+    create_bag_file(
         Conf.rosbag_output_directory_address,
         Conf.ros2_output_file_name,
         dm_information,

@@ -34,7 +34,7 @@ def get_standard_topic(src_file_name, topic, equivalent_topics: list) -> str:
     return standard_topic
 
 
-def collect_topics_from_rosbag2_file(src_list: list[Path], topics: list[str], equivalent_topics: list) -> dict:
+def collect_topics_from_bag_file(src_list: list[Path], topics: list[str], equivalent_topics: list) -> dict:
     """collect topics from rosbag files
 
     Args:
