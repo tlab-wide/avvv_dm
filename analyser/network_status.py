@@ -1,3 +1,5 @@
+from time import perf_counter
+
 import numpy as np
 import pandas as pd
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as TFMsg
@@ -60,7 +62,9 @@ class NetworkStatus:
 
         # self.rssi_list = self.measuring_rssi()  # TODO This is not completed
 
+        previous_time = perf_counter()
         self.position_netstat_dict = self.create_position_netstat_dict()
+        print(f"Time taken = {perf_counter() - previous_time} in seconds")
 
         # self.delete_far_packets()  # TODO Uncomment this when tf messages do not exist
 
@@ -611,9 +615,9 @@ class NetworkStatus:
 
             # Add to output list
             network_status_list.append(
-                [
+                (
                     epochtime_avg,
-                    NetworkStatusType(
+                    (
                         delay_avg,
                         jitter,
                         rssi,
@@ -621,8 +625,8 @@ class NetworkStatus:
                         packet_count,
                         epochtime_avg,
                         2 # TODO Currently we set medium to be unknown, this needs to change later
-                    ).msg
-                ])
+                    )
+                ))
 
             # Plot lists
             if Conf.time_reporter:
@@ -703,85 +707,6 @@ class NetworkStatus:
         plotter.simple_draw(x, rssi_list, "time(sec)", "RSSI",
                             "RSSI x Time  ( per " + str(Conf.network_status_time) + " second ) "+str(plotter.plots_directory_name))
 
-    # @staticmethod
-    # def create_position_netstat_dict(pair_pkts_list, obu_station_id):
-    #     """
-    #     todo : The changes of this function should be deleted and returned to its original state
-    #     this function creating position reporter
-    #     :param pair_pkts_list:
-    #     :param obu_station_id:
-    #     :return:
-    #     """
-    #
-    #     #
-    #     #
-    #     # finding obu ros2 file with obu_station_id
-    #     obu_ros2_file_address = Conf.ros2_files_directory + "/" + obu_station_id
-    #
-    #     #
-    #     #
-    #     # dictionary with key = (message stamp time) and value = tf message
-    #     tf_messages = tf_type_reader(rosbag_folder_path=obu_ros2_file_address)
-    #
-    #     #
-    #     #
-    #     # this dictionary holding network status of each position with key=time and value PositionNetworkStatus class
-    #     position_netstat_dict = {}
-    #
-    #     counter2 = 0
-    #     d = {}
-    #     d2 = {}
-    #     for pair in pair_pkts_list:
-    #
-    #         # getting key of position netstat dictionary( key is generation time of rsu packet)
-    #         key = cpm_interface.get_generationdeltatime(pair[0], False)
-    #
-    #         #
-    #         # getting time of packet ( it is time of receiver (obu) except when we have packet loss )
-    #         if pair[1] is None:
-    #             pkt_time = cpm_interface.get_epochtime(pair[0])
-    #         else:
-    #             pkt_time = cpm_interface.get_epochtime(pair[1])
-    #
-    #         # pkt_time = cpm_interface.get_epochtime(pair[0]) # todo: another formula
-    #
-    #         #
-    #         # finding the closest time in tf messages to time of packet
-    #         temp_min = Conf.max_difference_time_for_equivalent_tf_message
-    #
-    #         for tf_message_time in tf_messages:
-    #             pkt_time -= 21563017.874708  # todo : using config file for this
-    #             if abs(pkt_time - tf_message_time) < temp_min:
-    #                 rsu_packet = pair[0]
-    #                 obu_packet = pair[1]
-    #                 delay = pair[2]
-    #                 tf_message = tf_messages[tf_message_time]
-    #                 tf_time = tf_message_time
-    #                 temp_min = abs(pkt_time - tf_message_time)
-    #         if temp_min in d.keys():
-    #             d[temp_min] += 1
-    #         else:
-    #             d[temp_min] = 1
-    #
-    #         if tf_time in d2.keys():
-    #             d2[tf_time] += 1
-    #         else:
-    #             d2[tf_time] = 1
-    #
-    #         try:
-    #             if tf_message is None:
-    #                 counter2 += 1
-    #             position_netstat_dict[key] = PositionNetworkStatus(rsu_packet, obu_packet, tf_message, delay)
-    #             del tf_messages[tf_time]  # todo : delete this
-    #         except:
-    #             print("this packet has no message on tf topic")
-    #
-    #     print("size of d: ", len(d.keys()))
-    #     print("size of d2: ", len(d2.keys()))
-    #     print("d2:", d2)
-    #     print("message that have none tf-message", counter2)
-    #     print("size of position netstat dict : ", len(position_netstat_dict.keys()))
-    #     return position_netstat_dict
 
     def create_position_netstat_dict(self):
         """
@@ -794,6 +719,8 @@ class NetworkStatus:
 
         # Dictionary with key = (message stamp time) and value = tf message
         tf_messages = tf_type_reader(rosbag_folder_path=obu_ros2_file_address)
+
+        closest_timestamp_index = 0
 
         # This dictionary holds network status of each position with
         # key=time and value=PositionNetworkStatus class
@@ -814,12 +741,19 @@ class NetworkStatus:
             pkt_time /= 1e+3 # Convert to seconds from milliseconds
 
             # Find the closest time in TF messages to time of packet
-            temp_min = Conf.max_difference_time_for_equivalent_tf_message
-
-            for tf_message_time, tm_message in tf_messages.items():
-                if abs(pkt_time - tf_message_time) < temp_min:
-                    closest_tf_message = tm_message
-                    temp_min = abs(pkt_time - tf_message_time)
+            previous_min = abs(pkt_time - tf_messages[closest_timestamp_index][0])
+            i = closest_timestamp_index + 1
+            while i < len(tf_messages):
+                current_diff = abs(pkt_time - tf_messages[i][0])
+                # While the current timestamp is closer to the packet time,
+                # select it as the representing TF message
+                if current_diff < previous_min:
+                    previous_min = current_diff
+                    closest_timestamp_index = i
+                # Otherwise, we already have found the closest TF message
+                else:
+                    break
+                i += 1
 
             rsu_packets = self.sender_packets.loc[sender_packet_indices]
             if self.existing_sender_packets[packet_index]:
@@ -831,7 +765,8 @@ class NetworkStatus:
                 position_netstat_dict[key] = PositionNetworkStatus(
                     rsu_packets,
                     obu_packets,
-                    closest_tf_message,
+                    tf_messages[closest_timestamp_index][1],
+                    # closest_tf_message,
                     self.pkt_delays[packet_index],
                     self.dm_protocol_type)
             except Exception as e:
