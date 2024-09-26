@@ -21,17 +21,24 @@ def write_messages(
         # Add messages from this topic of CSV file dictionary to output rosbag2 file
         for msg_info in msg_list:
             try:
+            
                 timestamp = msg_info[0]
                 msg = msg_info[1]
-
-                raw_data = serialize_cdr(msg, msg.__msgtype__)
+                raw_data = serialize_cdr(msg, msg.__msgtype__)                
                 writer.write(connection, timestamp, raw_data)
+            
             except Exception as message_error:
                 print(f"""Error in writing our custom rosbag2 message.
                       message: {msg_info[1]} and error: {message_error}""")
     except Exception as topic_error:
         print(f"""Error in custom rosbag2 topic.
               topic : {topic} and error : {topic_error}""")
+    
+    print(f"Finished {topic}")
+    print("########################################################################")
+    print("########################################################################")
+    print("########################################################################")
+    print("########################################################################")
 
 
 def write_netstat_messages(
@@ -41,8 +48,8 @@ def write_netstat_messages(
     
     netstat_messages = [
         (
-            netstat[0],
-            NetworkStatus(*netstat[1])
+            int(netstat[0] * 1e+9), # Timestamp to write in BAG file (convert to ns)
+            NetworkStatus(*netstat[1]).msg
         )
         for netstat in netstat_list
     ]
@@ -73,7 +80,8 @@ def write_obu_messages(
     # Create DMN messages
     dmn_messages = [
         (
-            dm_interface.get_epochtime(pn.rsu_packets.iloc[0]), # Timestamp to write in BAG file
+            int(dm_interface.get_epochtime(
+                pn.rsu_packets.iloc[0]) * 1e+6), # Timestamp to write in BAG file (convert to ns from ms)
             create_message_array_n(
                 create_message_array(
                     [
@@ -121,11 +129,11 @@ def write_rsu_messages(
             all_csv_rows.loc[indices[0]])
     
         dm_message_array = create_dm_message_array([
-            dm_message(all_csv_rows.loc[index])
+            dm_message(all_csv_rows.loc[index]).msg
             for index in indices])
 
         msg_info = [
-            dm_csv_row_message_time_stamp,
+            int(dm_csv_row_message_time_stamp * 1e+6),  # Timestamp to write in BAG file (convert to ns from ms)
             dm_message_array]
     
         rsu_messages.append(msg_info)
@@ -187,7 +195,6 @@ def create_bag_file(
 
             for msg_info in ros_dict_input[topic]:
                 # Get information from this message with above topic
-                # connection = msg_info[0]
                 timestamp = msg_info[1]
                 raw_data = msg_info[2]
                 # Write to output file
