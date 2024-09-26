@@ -83,7 +83,7 @@ from csv_interface import dm_interface
 class TimeStamp:
     def __init__(self, time_stamp: int):
         self.raw_time_stamp = time_stamp
-        self.seconds = time_stamp // 1000
+        self.seconds = int(time_stamp // 1000)
         self.nanoseconds = int((time_stamp % 1000) * 1e6)  # 1e6 nanoseconds in a millisecond
         
         self.ros_time_stamp = builtin_time(
@@ -223,10 +223,10 @@ class SignalInfo:
             crp_id=CrpId(value=dm_interface.get_signal_crp_id(self.dataframe_row)),
             signal_id_list=[SignalId(value=beacon_id) for beacon_id in dm_interface.get_signal_beacon_id(self.dataframe_row)],
             time=TimestampIts(value=dm_interface.get_signal_timestamp_its(self.dataframe_row)),
-            state=None,
-            specific_control_flags=None,
-            event_count=None,
-            count_down_stop_flag=None,
+            state=SignalState(value=0),
+            specific_control_flags=SpecificControlFlags(value=0),
+            event_count=EventCount(value=0),
+            count_down_stop_flag=CountDownStopFlag(value=0),
             signal_light_info_list=[signal_light_info_msg]
         )
 
@@ -241,7 +241,7 @@ class SignalInfo:
             network_status: NetworkStatus) -> SignalInfoNMsg:
         signal_info_n = SignalInfoNMsg(
             signal_info_array=signal_info_array,
-            network_status=network_status)
+            network_status=network_status.msg)
         return signal_info_n
 
 
@@ -258,17 +258,17 @@ class FreespaceInfo:
                 value=dm_interface.get_object_id(self.dataframe_row)),
             time=TimestampIts(
                 value=dm_interface.get_object_timestamp_its(self.dataframe_row)),
-            existency=None,
-            minimal_detectable_size=None,
+            existency=ExistenceConfidence(value=0),
+            minimal_detectable_size=ObjectDimensionValue(value=65535),
             position_begin=Location(
                 geodetic_system=GeodeticSystem(value=position_begin[0]),
                 latitude=Latitude(value=position_begin[1]),
                 longitude=Longitude(value=position_begin[2]),
                 altitude=Altitude(value=position_begin[3]),
-                crp_id=None,
-                dx_crp=None,
-                dy_crp=None,
-                dh_crp=None,
+                crp_id=CrpId(value=0),
+                dx_crp=DistanceValue(value=-132768),
+                dy_crp=DistanceValue(value=-132768),
+                dh_crp=DistanceValue(value=-132768),
                 lane_count=None,
                 lane_position=None,
                 lane_lateral_position=None,
@@ -276,9 +276,9 @@ class FreespaceInfo:
                 crp_id_end=None,
                 lane_vertical_position=None,
                 lane_id=None,
-                dx_lane=None,
-                dy_lane=None,
-                dh_lane=None,
+                dx_lane=DistanceValue(value=-132768),
+                dy_lane=DistanceValue(value=-132768),
+                dh_lane=DistanceValue(value=-132768),
                 semi_axis_length_major=None,
                 semi_axis_length_minor=None,
                 orientation=None,
@@ -323,5 +323,5 @@ class FreespaceInfo:
             network_status: NetworkStatus) -> FreespaceInfoNMsg:
         freespace_info_n = FreespaceInfoNMsg(
             freespace_info_array=freespace_info_array,
-            network_status=network_status)
+            network_status=network_status.msg)
         return freespace_info_n
