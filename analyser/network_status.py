@@ -507,41 +507,6 @@ class NetworkStatus:
 
         return jitter
 
-    # @staticmethod
-    # def create_ros2_type_network_status_per_packet(rec_pkt, send_pkt, delay: float = None):
-    #     """
-    #     this function creating network status ros2 type for just one packet
-    #     :param delay:
-    #     :param rec_pkt:
-    #     :param send_pkt:
-    #     :return:
-    #     """
-    #     if rec_pkt is not None:
-    #         epochtime_rec = dm_interface.get_epochtime(rec_pkt)
-
-    #     epochtime_send = dm_interface.get_epochtime(send_pkt)
-
-    #     # Extract seconds and microseconds components
-    #     seconds = epochtime_send // 1_000_000  # Whole number of seconds
-    #     microseconds = epochtime_send % 1_000_000  # Remaining microseconds
-    #     # Convert microseconds to nanoseconds
-    #     nanoseconds = microseconds * 1000
-    #     builtin_epochtime = builtin_time(sec=int(seconds), nanosec=int(nanoseconds))
-
-    #     jitter = 0  # TODO : jitter is not completed
-    #     rssi = 255  # TODO : rssi is not completed
-
-    #     if rec_pkt is None:
-    #         packet_loss = 1
-    #         delay = -1
-
-    #     else:
-    #         packet_loss = 0
-    #         if delay is None:
-    #             delay = (epochtime_rec - epochtime_send) / 1000
-
-    #     return netstat(stamp=builtin_epochtime, delay=delay, jitter=jitter, rssi=rssi,
-    #                    packet_loss=packet_loss, packet_count=1)
 
     def create_ros2_type_network_status(self) -> list:
         """
@@ -551,7 +516,7 @@ class NetworkStatus:
         """
         # First packet time (send time)
         first_pkt_time = dm_interface.get_epochtime(
-            self.sender_packets.loc[0])
+            self.sender_packets.loc[0]) / 1e+3 # Convert to s from ms
 
         # Keys are sec times and values are list of delays on that time
         network_status_delay_dict = {}
@@ -564,9 +529,9 @@ class NetworkStatus:
         for packet_index, packet_timestamp in enumerate(self.sender_pkt_timestamps):
 
             sender_epochtime = dm_interface.get_epochtime(
-                self.sender_packets.loc[self.sender_pkt_dict[packet_timestamp][0]])  # Epoch time of sender packet
+                self.sender_packets.loc[self.sender_pkt_dict[packet_timestamp][0]]) / 1e+3  # Epoch time of sender packet (in seconds)
 
-            pkt_time_from_start = ((sender_epochtime - first_pkt_time) / 1000)
+            pkt_time_from_start = sender_epochtime - first_pkt_time
 
             key = int(pkt_time_from_start / Conf.network_status_time)
 
@@ -766,7 +731,6 @@ class NetworkStatus:
                     rsu_packets,
                     obu_packets,
                     tf_messages[closest_timestamp_index][1],
-                    # closest_tf_message,
                     self.pkt_delays[packet_index],
                     self.dm_protocol_type)
             except Exception as e:
