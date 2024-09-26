@@ -54,7 +54,6 @@ def dm_merger() -> None:
             rsu.set_dm_protocol_type(dm_protocol)
             topic = rsu.get_topic_name(topic_syntax)
             rsu_dm_msg_grps = rsu.get_csv_dm_info()
-            # dm_information.append(("rsu", dm_protocol, topic, rsu_dm_msgs))
             dm_information[topic] = (dm_protocol, rsu, rsu_dm_msg_grps)
 
         # Create /OBU_#/RSU_#/[topic_syntax]/network_status and /OBU_#/RSU_#/[topic_syntax]n topics in final ROSBAG
@@ -81,14 +80,12 @@ def dm_merger() -> None:
                 # Generate /OBU_#/RSU_#/[topic_syntax]/network_status topic
                 netstat_topic = obu_rsu_network_status.get_topic(
                     topic_syntax + "/" + Conf.network_status_topic_name_syntax)
-                ros2type_network_status_list = obu_rsu_network_status\
-                    .get_ros2type_network_status_list()
-                dm_information[netstat_topic] = ros2type_network_status_list
+                network_status_list = obu_rsu_network_status\
+                    .get_network_status_list()
+                dm_information[netstat_topic] = network_status_list
 
                 # Generate /OBU_#/RSU_#/[topic_syntax]n topic
                 dmn_topic = obu_rsu_network_status.get_topic(f"{topic_syntax}n")
-                # ros2type_dmn_list = obu_rsu_network_status.get_ros2type_dmn_list()
-                # dm_information[dmn_topic] = ros2type_dmn_list
                 dm_information[dmn_topic] = (
                     dm_protocol,
                     obu_rsu_network_status.position_netstat_dict)

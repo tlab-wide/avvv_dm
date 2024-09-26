@@ -77,7 +77,7 @@ class NetworkStatus:
         self.plot_distance_graphs()  # TODO Getting distance list with converting this function to two function
 
         # input("before create_ros2_type_network_status")
-        self.network_status_list: list = self.create_ros2_type_network_status()
+        self.network_status_list: list = self.create_network_status()
         # input("after create_ros2_type_network_status")
 
         # input("before create_ros2_type_dmn")        
@@ -171,7 +171,7 @@ class NetworkStatus:
         
         return sender_pkt_dict, sender_pkt_timestamps, existing_sender_packets, receiver_pkt_dict, pkt_delays
 
-    def get_ros2type_network_status_list(self):
+    def get_network_status_list(self):
         """
 
         :return:
@@ -508,7 +508,7 @@ class NetworkStatus:
         return jitter
 
 
-    def create_ros2_type_network_status(self) -> list:
+    def create_network_status(self) -> list:
         """
         1. Creates some dictionary like { sec value 1 : [ delay0 (in sec value) , ... , delay(n) ] , ... }
         2. Creates network status list like : [ [ epochtime average,netstat ] , ... ]
