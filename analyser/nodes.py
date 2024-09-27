@@ -116,6 +116,7 @@ class RSU(Node):
         """
         return f"RSU_{str(self._its_station_id)}"
 
+    # TODO Fix the following methods and make them available
     # def __netstat_position_graphs(self) -> None:
     #     """
     #     this method creates network status position graphs for this Rsu
@@ -123,16 +124,16 @@ class RSU(Node):
     #     """
     #     # getting all NetworkStatusPosition's dictionaries of this Rus
     #     netstat_position_dicts: List[Dict[float, PositionNetworkStatus]] = self.get_netstat_position_dicts()
-    #
+    
     #     # merging all NetworkStatusPosition's dictionaries to one NetworkStatusPosition dictionary
     #     netstat_position_dicts_merged = merge_dicts(netstat_position_dicts, overwrite=False, important_keys=False)
-    #
+    
     #     #
     #     # creating graphs
-    #
+    
     #     position_packetLoss_graph(netstat_position_dicts_merged, self.__plotter, self.__rsu_position_x,
     #                               self.__rsu_position_y, self.get_plots_directory_name())
-    #
+    
     #     position_delay_graph(netstat_position_dicts_merged, self.__plotter, self.__rsu_position_x,
     #                          self.__rsu_position_y, self.get_plots_directory_name())
 
@@ -152,6 +153,7 @@ class RSU(Node):
         """
         self.__network_statuses.append(netstat_obj)
 
+    # TODO Fix the following methods and make them available (related to the TODO above)
     # def get_netstat_position_dicts(self) -> List[Dict[float, PositionNetworkStatus]]:
     #     """
     #     this method return list of position network status dictionaries

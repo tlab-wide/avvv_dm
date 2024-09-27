@@ -168,7 +168,7 @@ class Conf:
         for path in os.listdir(Conf.ros2_files_directory):
             Conf.ros2_files_path.append(Conf.ros2_files_directory + "/" + path)
 
-        # reading information of position_reporter_packet_loss section in config file
+        # Read information of position_reporter_packet_loss section in config file
         Conf.packet_loss_color = json.loads(configuration.get("position_reporter_packet_loss", "packet_loss_color"))
         Conf.packet_color = json.loads(configuration.get("position_reporter_packet_loss", "packet_color"))
         Conf.just_show_packet_loss = Conf.boolean(
@@ -177,13 +177,11 @@ class Conf:
             configuration.get("position_reporter_packet_loss", "packet_loss_point_size"))
         Conf.packet_point_size = json.loads(configuration.get("position_reporter_packet_loss", "packet_point_size"))
 
-        # reading information of position_reporter_delay section in config file
+        # Read information of position_reporter_delay section in config file
         Conf.position_delay_packet_point_size = json.loads(configuration.get("position_reporter_delay", "packet_size"))
 
-        # csv section
+        # CSV section
         Conf.csv_topics = json.loads(configuration.get("csv_files", "csv_topics"))
-        Conf.cpm_format_perceived_objects_number = json.loads(
-            configuration.get("csv_files", "cpm_format_perceived_objects_number"))
 
     @staticmethod
     def boolean(value: str) -> bool:

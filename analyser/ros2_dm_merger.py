@@ -4,12 +4,9 @@ creating some reports for the topics, files, and network status
 """
 import topics
 from nodes import NodesManager
-from ros2_interface.ros2file_gen import create_bag_file
+from ros2_interface.ros2file_gen import BagCreator
 from config_avvv import Conf
 from network_status import NetworkStatus
-
-
-# from packet_interface import cpm_interface
 
 
 def dm_merger() -> None:
@@ -24,6 +21,10 @@ def dm_merger() -> None:
     ros_dict_information: dict # This dictionary keeps information of ROSBAG topics
 
     dm_protocols = Conf.dm_protocols
+
+    bag_creator = BagCreator(
+        Conf.rosbag_output_directory_address,
+        Conf.ros2_output_file_name)
 
     for dm_protocol in dm_protocols:
         try:
@@ -43,18 +44,18 @@ def dm_merger() -> None:
         if len(rsu_files) == 0 or len(obu_files) == 0:
             raise Exception("RSU or OBU files not found in config file!")
 
-        print(f"Working on {dm_protocol}")
+        print(f"On {dm_protocol}")
 
         # Read CSV files and create RSU and OBU objects
         nodes_manager = NodesManager(obu_files, rsu_files)  # TODO Add empty CSV exception (when CSV is empty we get error)
 
         # Create /RSU_#/[dm_protocol] topics in final ROSBAG
         for rsu in nodes_manager.get_rsu_nodes():
-            print(f"Working on RSU: {rsu.get_station_id()}")
             rsu.set_dm_protocol_type(dm_protocol)
             topic = rsu.get_topic_name(topic_syntax)
             rsu_dm_msg_grps = rsu.get_csv_dm_info()
             dm_information[topic] = (dm_protocol, rsu, rsu_dm_msg_grps)
+            print(f"Finished RSU: {rsu.get_station_id()}")
 
         # Create /OBU_#/RSU_#/[topic_syntax]/network_status and /OBU_#/RSU_#/[topic_syntax]n topics in final ROSBAG
         for obu in nodes_manager.get_obu_nodes():
@@ -90,19 +91,24 @@ def dm_merger() -> None:
                     dm_protocol,
                     obu_rsu_network_status.position_netstat_dict)
 
+                print(f"Finished OBU: {obu.get_station_id()} RSU: {rsu.get_station_id()}")            
+
+        # Create output ROSBAG file
+        print(f"Writing topics...")
+        bag_creator.create_and_add_messages(dm_information)
+
+        dm_information.clear()
+
+
     # ROSBAG topics
     ros_dict_information = topics.collect_topics_from_bag_file(
         Conf.ros2_files_path,
         Conf.ros2_topics,
         Conf.equivalent_topics)
 
-    # Create output ROSBAG file
-    create_bag_file(
-        Conf.rosbag_output_directory_address,
-        Conf.ros2_output_file_name,
-        dm_information,
-        ros_dict_information)
+    bag_creator.add_ros_messages(ros_dict_information)
 
+    # TODO Fix the following methods and make them available
     # Create graphs of RSU
     # if Conf.rsu_only_graphs:
     #     for rsu in nodes_manager.get_rsu_nodes():

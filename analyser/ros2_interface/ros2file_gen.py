@@ -165,7 +165,7 @@ class BagCreator:
 
         :return:
         """
-        
+
         # Write CSV files information to output rosbag2 file
         for topic in list(csv_dict_input.keys()):
             if "OBU" in topic:
@@ -184,6 +184,7 @@ class BagCreator:
                     csv_dict_input[topic][0],
                     csv_dict_input[topic][1].get_csv_rows(),
                     csv_dict_input[topic][2])
+            print(f"Finished topic: {topic}")
                 
     def add_ros_messages(
             self,
@@ -201,3 +202,4 @@ class BagCreator:
                 raw_data = msg_info[2]
                 # Write to output file
                 self.writer.write(connection, timestamp, raw_data)
+            print(f"Finished topic: {topic}")

@@ -68,21 +68,13 @@ class NetworkStatus:
 
         # self.delete_far_packets()  # TODO Uncomment this when tf messages do not exist
 
-        # print("size packets after delete : ", len(self.pair_packet_list_with_delay))
-
         self.plotter = Plotter(self.get_plots_directory())
 
         self.plot_position_graphs()
 
         self.plot_distance_graphs()  # TODO Getting distance list with converting this function to two function
 
-        # input("before create_ros2_type_network_status")
         self.network_status_list: list = self.create_network_status()
-        # input("after create_ros2_type_network_status")
-
-        # input("before create_ros2_type_dmn")        
-        # self.dmn_list = self.create_ros2_type_dmn()
-        # input("after create_ros2_type_dmn")        
 
         # if Conf.time_reporter: # TODO This is not completed
         #     self.plotting_time_graphs()
@@ -128,31 +120,6 @@ class NetworkStatus:
         
         existing_sender_packets = np.isin(sender_pkt_timestamps, receiver_pkt_timestamps)
         
-        # for index in range(rec_cap_len):
-        #     key = dm_interface.get_id(rec_cap[index], is_rsu=False)
-        #     if key not in rec_pkt_dict.keys():
-        #         rec_pkt_dict[key] = rec_cap[index]
-        #     else:
-        #         print("There are some packets with the same Rsu StationID and packet ID in the packets")
-        #         # raise ValueError("There are some packets with the same Rsu StationID and packet ID in the packets")
-
-        # counter = 0
-        # iteration on sender packet for finding corresponding packet in the receiver packets
-        # for index in range(send_cap_len):
-        #     send_pkt = send_cap[index]
-        #     send_pkt_id = dm_interface.get_id(send_pkt, is_rsu=True)
-
-        #     if send_pkt_id in rec_pkt_dict.keys():
-        #         rec_pkt = rec_pkt_dict[send_pkt_id]
-        #     else:
-        #         rec_pkt = None
-        #         counter += 1
-
-        #     pair_corresponding_pkts.append([send_pkt, rec_pkt])
-
-        #     if rec_pkt is not None:
-        #         del rec_pkt_dict[dm_interface.get_id(send_pkt, is_rsu=True)]
-
         return sender_pkt_dict, sender_pkt_timestamps, existing_sender_packets, receiver_pkt_dict
 
     
@@ -427,14 +394,6 @@ class NetworkStatus:
         temp_pair_packet_list_with_delay = []
 
         for pair in self.pair_packet_list_with_delay:
-
-            # if we don't have packet loss
-
-            # todo:If you want to delete only the packets that are lost and are not in the range, uncomment this section
-            # if pair[1] is not None:
-            # temp_pair_packet_list_with_delay.append(pair)
-            # continue
-
             # getting position of rsu
             rsu_pkt = pair[0]
             # rsu_position = dm_interface.get_rsu_position_in_xy(rsu_pkt)
@@ -639,6 +598,7 @@ class NetworkStatus:
 
         y_data_list = [np.linspace(0, 0, len(x)), np.linspace(1, 1, len(x)), np.linspace(2, 2, len(x))]
 
+        # TODO Fix the following methods and make them available (if required)
         # create_animated_3d_linear_plots(x, [delay_list, jitter_list, pkt_loss_list], z_data,
         #                                 "Online delay-jitter-packetLoss 3D graph", "delay", "jitter",
         #                                 "packet-loss", "time", "value", "z")
@@ -762,8 +722,8 @@ class NetworkStatus:
             self.rsu_position_y,
             title_appendix)
 
+        # TODO Fix the following methods and make them available
         # position_jitter_graph(self.position_netstat_dict, self.plotter, self.rsu_position_x, self.rsu_position_y, title_appendix) # todo: not completed
-
         # position_rssi(self.position_netstat_dict, self.plotter, self.rsu_position_x, self.rsu_position_y, title_appendix) # todo: not completed
 
 
