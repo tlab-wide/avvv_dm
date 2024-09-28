@@ -25,9 +25,10 @@
 // Package
 #include <visually_dm/rviz_tools.hpp>
 #include <visually_dm/transforms.hpp>
-#include <dm_freespace_info_msgs/msg/freespace_info_array.hpp>
-#include <dm_object_info_msgs/msg/object_info_array.hpp>
-#include <dm_signal_info_msgs/msg/signal_info_array.hpp>
+#include <visually_dm/net_status.hpp>
+#include <dm_network_info_msgs/msg/object_info_n.hpp>
+#include <dm_network_info_msgs/msg/signal_info_n.hpp>
+#include <dm_network_info_msgs/msg/freespace_info_n.hpp>
 
 
 namespace manager
@@ -56,6 +57,11 @@ public:
     Visualiser(
         std::shared_ptr<rclcpp::Node>& node
         , const std::string& base_frame
+        , net_status::NetworkField link_colour
+        , net_status::NetworkField link_thickness
+        , net_status::NetworkField link_packet_density
+        , net_status::NetworkField link_opacity
+        , const net_status::NetParamRanges& ranges
         , double rsu_obu_con_dist);
 
     /**
@@ -129,6 +135,26 @@ public:
     */
     void setBaseAltitude(double base_altitude);
 
+    /**
+     * @brief Adds an offline heatmap type to art.
+     * @param offline_heatmap_path The path to the CSV file containing heatmap data
+     * @param rsu_id The ID of the RSU side of the heatmap
+     * @param obu_id The ID of the OBU side of the heatmap
+     * @param network_attr The network parameter which the heatmap represents
+    */
+    void addOfflineHeatmap(
+        const std::string& offline_heatmap_path
+        , const std::string& rsu_id
+        , const std::string& obu_id
+        , int network_attr);
+
+    /**
+     * @brief Adds all online heatmap types to art.
+     * @note Call this member function after you've added all the
+     * RSUs and OBUs
+    */
+    void addOnlineHeatmaps();
+
 private:
     /**
      * @brief Updates the position of the RSU with the given ID based on the
@@ -192,6 +218,12 @@ private:
         , std::string& ros_topic
         , std::vector<std::string>& connected_link_ids);
 
+    // Link parameters represent parameters of the network status 
+    net_status::NetworkField link_colour_;
+    net_status::NetworkField link_thickness_;
+    net_status::NetworkField link_packet_density_;
+    net_status::NetworkField link_opacity_;
+
     // The ROS node
     std::shared_ptr<rclcpp::Node> node_;
 
@@ -202,11 +234,16 @@ private:
     std::mutex art_lock_;
 
     // The subscriptions on different topics and message types
-    std::vector<std::shared_ptr<rclcpp::Subscription<dm_object_info_msgs::msg::ObjectInfoArray>>> object_info_subscriptions_;
-    std::vector<std::shared_ptr<rclcpp::Subscription<dm_signal_info_msgs::msg::SignalInfoArray>>> signal_info_subscriptions_;
-    std::vector<std::shared_ptr<rclcpp::Subscription<dm_freespace_info_msgs::msg::FreespaceInfoArray>>> freespace_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::ObjectInfoN>>> object_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::SignalInfoN>>> signal_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::FreespaceInfoN>>> freespace_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::ObjectInfoN>>> object_network_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::SignalInfoN>>> signal_network_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::FreespaceInfoN>>> freespace_network_info_subscriptions_;
     std::vector<std::shared_ptr<rclcpp::Subscription<tf2_msgs::msg::TFMessage>>> tf_subscriptions_;
     
+    net_status::NetStatusRepr net_status_repr_;
+
     double rsu_obu_con_dist_;
 };
 

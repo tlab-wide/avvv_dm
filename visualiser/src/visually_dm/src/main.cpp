@@ -22,6 +22,7 @@
 #include <visually_dm/rviz_tools.hpp>
 #include <visually_dm/pointcloud_tools.hpp>
 #include <visually_dm/manager.hpp>
+#include <visually_dm/net_status.hpp>
 
 
 int main(int argc, char** argv)
@@ -109,6 +110,10 @@ int main(int argc, char** argv)
 	
 	std::vector<std::string> signal_list{ node->get_parameter("signal_list").as_string_array() };
 
+	// Target RSU and OBU IDs
+	std::string target_rsu_id{ node->get_parameter("target_rsu_id").as_string() };
+	std::string target_obu_id{ node->get_parameter("target_obu_id").as_string() };
+
 	// The maximum connection range between the RSU and the OBU
 	const double rsu_obu_con_dist{ node->get_parameter("rsu_obu_con_dist").as_double() };
 
@@ -119,6 +124,16 @@ int main(int argc, char** argv)
 
 	bool on_hm{ node->get_parameter("on_hm").as_bool() };
 	
+	// Network attributes
+	net_status::NetworkField link_colour{
+		net_status::intToNetworkField(node->get_parameter("link_colour").as_int()) };
+	net_status::NetworkField link_thickness{
+		net_status::intToNetworkField(node->get_parameter("link_thickness").as_int()) };
+	net_status::NetworkField link_packet_density{
+		net_status::intToNetworkField(node->get_parameter("link_packet_density").as_int()) };
+	net_status::NetworkField link_opacity{
+		net_status::intToNetworkField(node->get_parameter("link_opacity").as_int()) };
+
 	net_status::NetParamRanges net_param_ranges{
 		node->get_parameter("delay_best").as_double()
 		, node->get_parameter("delay_worst").as_double()
@@ -140,6 +155,11 @@ int main(int argc, char** argv)
 	manager::Visualiser visualiser(
 		node,
 		base_frame,
+		link_colour,
+		link_thickness,
+		link_packet_density,
+		link_opacity,
+		net_param_ranges,
 		rsu_obu_con_dist);
 
 	visualiser.setBaseAltitude(base_altitude);
@@ -174,6 +194,9 @@ int main(int argc, char** argv)
 				target_obu_id,
 				off_hm_net_attr);
 		
+		if (on_hm)
+			visualiser.addOnlineHeatmaps();
+
 		// Loading the Pointcloud file
 		if (pcd_filename.length())
 			apt.loadFile(pcd_filename, map_offset, false);

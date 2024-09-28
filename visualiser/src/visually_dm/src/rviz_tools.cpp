@@ -484,6 +484,56 @@ void RvizTools::updateFreespace(
     }
 }
 
+void RvizTools::addOfflineHeatmap(
+    const std::string& id
+    , const std::string& file_path
+    , const net_status::NetStatusRepr& net_status_repr
+    , int network_attr)
+{
+    if (offline_heatmaps_.find(id) == offline_heatmaps_.end()) {
+        heatmap::OfflineHeatmap new_offline_heatmap{
+            node_
+            , id
+            , base_frame_
+            , net_status_repr
+            , network_attr };
+        offline_heatmaps_.emplace(id, new_offline_heatmap);
+        offline_heatmaps_.at(id).withdrawHeatmapPoints(file_path);
+        offline_heatmaps_.at(id).buildMarkers();
+    }
+}
+
+void RvizTools::addOnlineHeatmap(
+    const std::string& id
+    , const net_status::NetStatusRepr& net_status_repr
+    , int network_attr)
+{
+    if (online_heatmaps_.find(id) == online_heatmaps_.end()) {
+        heatmap::OnlineHeatmap new_online_heatmap{
+            node_
+            , id
+            , base_frame_
+            , net_status_repr
+            , network_attr };
+        online_heatmaps_.emplace(id, new_online_heatmap);
+    }
+}
+
+void RvizTools::addToOnlineHeatmap(
+    const std::string& id
+    , double x
+    , double y
+    , double z
+    , double value)
+{
+    try {
+        online_heatmaps_.at(id).addNewOnlineHeatmapPoint(
+            x
+            , y
+            , z
+            , value);
+    } catch (std::out_of_range&) {}
+}
 
 void RvizTools::setBaseAltitude(double base_altitude)
 {
@@ -531,6 +581,9 @@ void RvizTools::displayBase()
 
     for (auto& light_set : light_sets_)
         light_set.second.publishBaseUpdates();
+    
+    for (auto& offline_heatmap : offline_heatmaps_)
+        offline_heatmap.second.publishUpdates();
 }
 
 void RvizTools::updateLinkEndpoints(const std::string& id, const geometry_msgs::msg::Point& point)

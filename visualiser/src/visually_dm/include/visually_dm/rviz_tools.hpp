@@ -22,6 +22,7 @@
 
 // Package
 #include <visually_dm/entities.hpp>
+#include <visually_dm/heatmap.hpp>
 #include <dm_freespace_info_msgs/msg/freespace_info_array.hpp>
 #include <dm_object_info_msgs/msg/object_info_array.hpp>
 #include <dm_signal_info_msgs/msg/signal_info_array.hpp>
@@ -341,6 +342,48 @@ public:
         , const std::vector<dm_freespace_info_msgs::msg::FreespaceInfo>& freespace_infos);
 
     /**
+     * @brief Adds an offline heatmap recorder to the list of offline heatmaps
+     * @param id
+     * @param file_path Path to the CSV file containing heatmap data
+     * @param net_status_repr The network status representative object
+     * @param network_attr The network parameter the heatmap data is about
+     * @note The given ID must be unique, or this will be ignored
+    */
+    void addOfflineHeatmap(
+        const std::string& id
+        , const std::string& file_path
+        , const net_status::NetStatusRepr& net_status_repr
+        , int network_attr);
+
+    /**
+     * @brief Adds an online heatmap recorder to the list of online heatmaps
+     * @param id
+     * @param net_status_repr The network status representative object
+     * @param network_attr The network parameter the heatmap data is about
+     * @note The given ID must be unique, or this will be ignored
+    */
+    void addOnlineHeatmap(
+        const std::string& id
+        , const net_status::NetStatusRepr& net_status_repr
+        , int network_attr);
+
+    /**
+     * @brief Adds an online heatmap point to the specified online heatmap recorder
+     * @param id
+     * @param x
+     * @param y
+     * @param z
+     * @param value
+     * @note If the given ID is invalid, this will be ignored
+    */
+    void addToOnlineHeatmap(
+        const std::string& id
+        , double x
+        , double y
+        , double z
+        , double value);
+
+    /**
      * @brief Sets the base_altitude member attribute
      * @param base_altitude
     */
@@ -385,6 +428,9 @@ private:
     std::map<std::string, entities::Freespace> freespaces_;
     std::map<std::string, entities::Link> links_;
     std::map<std::string, entities::LinkPair> link_pairs_;
+
+    std::map<std::string, heatmap::OfflineHeatmap> offline_heatmaps_;
+    std::map<std::string, heatmap::OnlineHeatmap> online_heatmaps_;
 
     // The interactive marker callbacks for all the meshes (RSUs, OBUs and clouds)
     std::map<std::string, interactive_markers::InteractiveMarkerServer::FeedbackCallback> callbacks_;

@@ -26,6 +26,7 @@
   <depend>dm_freespace_info_msgs</depend>
   <depend>dm_object_info_msgs</depend>
   <depend>dm_signal_info_msgs</depend>
+  <depend>dm_network_info_msgs</depend>
   
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>map_loader</exec_depend>

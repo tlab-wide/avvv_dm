@@ -1,4 +1,4 @@
-#include <visually/heatmap.hpp>
+#include <visually_dm/heatmap.hpp>
 
 namespace heatmap
 {

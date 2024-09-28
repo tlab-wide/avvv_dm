@@ -8,9 +8,19 @@ namespace manager
 Visualiser::Visualiser(
     std::shared_ptr<rclcpp::Node>& node
     , const std::string& base_frame
+    , net_status::NetworkField link_colour
+    , net_status::NetworkField link_thickness
+    , net_status::NetworkField link_packet_density
+    , net_status::NetworkField link_opacity
+    , const net_status::NetParamRanges& ranges
     , double rsu_obu_con_dist)
-    : node_(node)
+    : link_colour_(link_colour)
+    , link_thickness_(link_thickness)
+    , link_packet_density_(link_packet_density)
+    , link_opacity_(link_opacity)
+    , node_(node)
     , art_(node, base_frame)
+    , net_status_repr_(ranges)
     , rsu_obu_con_dist_(rsu_obu_con_dist)
 {
 
@@ -23,7 +33,8 @@ Visualiser::~Visualiser()
 
 void Visualiser::addDetection(
     const std::string& topic
-    , std::string detected_colour)
+    , std::string detected_colour
+    , bool add_online_heatmap)
 {
     std::vector<std::string> connected_link_ids;
     std::string ros_topic;
@@ -260,6 +271,50 @@ void Visualiser::addSignalList(
     );
 }
 
+void Visualiser::addOfflineHeatmap(
+    const std::string& offline_heatmap_path
+    , const std::string& rsu_id
+    , const std::string& obu_id
+    , int network_attr)
+{
+    std::string id{obu_id + '_' + rsu_id + "_offline_heatmap"};
+    art_lock_.lock();
+    art_.addOfflineHeatmap(
+        id
+        , offline_heatmap_path
+        , net_status_repr_
+        , network_attr);
+    art_lock_.unlock();
+}
+
+void Visualiser::addOnlineHeatmaps()
+{
+    art_.addOnlineHeatmap(
+        new_cpmn_id + "_delay"
+        , net_status_repr_
+        , net_status::delay);
+    art_.addOnlineHeatmap(
+        new_cpmn_id + "_jitter"
+        , net_status_repr_
+        , net_status::jitter);
+    art_.addOnlineHeatmap(
+        new_cpmn_id + "_rssi"
+        , net_status_repr_
+        , net_status::rssi);
+    art_.addOnlineHeatmap(
+        new_cpmn_id + "_packet_loss"
+        , net_status_repr_
+        , net_status::packetLoss);
+    online_heatmap_subscriptions_.push_back(
+    node_->create_subscription<cpm_ros_msgs::msg::CPMN>(
+        topic
+        , 10
+        , [this, new_cpmn_id](const cpm_ros_msgs::msg::CPMN& msg) -> void {
+            onlineHeatmapCallback(msg, new_cpmn_id);
+        })
+    );
+}
+
 void Visualiser::setBaseAltitude(double base_altitude)
 {
     art_.setBaseAltitude(base_altitude);
@@ -317,7 +372,7 @@ void Visualiser::freespaceMessageCallback(
 
 void Visualiser::signalMessageCallback(
     const dm_signal_info_msgs::msg::SignalInfoArray& msg
-        , const std::vector<std::string> connected_link_ids)
+    , const std::vector<std::string> connected_link_ids)
 {
     for (const auto& signal_info : msg.array) {
         art_.updateSignal(
