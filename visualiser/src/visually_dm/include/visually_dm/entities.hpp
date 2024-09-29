@@ -83,6 +83,19 @@ green,
 
 };
 
+/**
+ * @brief Holds the characteristics of a link
+*/
+struct LinkInformation
+{
+    rviz_visual_tools::Colors colour_;
+    double line_thickness_;
+    double opacity_;
+    double packet_size_;
+    double packet_dist_;
+    visualization_msgs::msg::Marker spheres_;
+}
+
 
 /**
  * @brief Stores the points for the echo circle lines for the RSUs/OBUs
@@ -187,8 +200,8 @@ public:
 
     /**
      * @brief Sets the pose of this entity
-     * \note Adjusts the pose of the receiver point of this entity as well
-     * \param pose
+     * @note Adjusts the pose of the receiver point of this entity as well
+     * @param pose
 	*/
     void setPose(const geometry_msgs::msg::Pose& pose);
 
@@ -196,6 +209,13 @@ public:
      * @brief Turns displaying information above the entity on or off
     */
     void toggleDisplayInfo();
+
+    /**
+     * @brief Sets the pose of this entity
+     * @note Adjusts the pose of the receiver point of this entity as well
+     * @param pose
+	*/
+    geometry_msgs::msg::Pose getPose() const;
 
     /**
      * @returns The receiver position of the entity
@@ -509,6 +529,12 @@ public:
     
     /**
      * @brief Update the position of the specified end point
+     * @param protocol The protocol name (object, freespace or signal)
+    */
+    void addProtocol(const std::string& protocol);
+
+    /**
+     * @brief Update the position of the specified end point
      * @param end_point_id The ID of the entity this link meets at any end
      * @param point The new position of the end point
     */
@@ -518,16 +544,18 @@ public:
 
     /**
      * @brief Update the specifications of the link
+     * @param protocol The protocol name (object, freespace or signal)
      * @param colour
      * @param thickness
      * @param opacity
      * @param packet_dist The new distance between any two packets
     */
     void updateLinkSpecs(
-        rviz_visual_tools::Colors colour
-        , double thickness
-        , double opacity
-        , double packet_dist);
+        const std::string& protocol,
+        rviz_visual_tools::Colors colour,
+        double thickness,
+        double opacity,
+        double packet_dist);
 
     /**
      * @brief Activates links as having a flow of data
@@ -547,12 +575,7 @@ private:
      */
     std::vector<geometry_msgs::msg::Point> getPacketPoints();
 
-    // The characteristics of the link
-    rviz_visual_tools::Colors colour_;
-    double line_thickness_;
-    double opacity_;
-    double packet_size_;
-    double packet_dist_;
+    std::map<std::string, LinkInformation> link_infos_;
 
     // The position of the two ends
     geometry_msgs::msg::Point point_i_;
@@ -575,7 +598,6 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> last_active_time_;
 
     visualization_msgs::msg::Marker line_;
-    visualization_msgs::msg::Marker spheres_;
 };
 
 /**

@@ -228,14 +228,19 @@ public:
     /**
      * @brief Adds a new RSU-vehicle link to the network
      * @param id
+     * @param protocol Including object_info, freespace_info and signal_info
      * @param max_dist The maximum distance at which the link stays visually connected
      * @note The given ID must be unique, or this will be ignored
      */
-    void addLink(const std::string& id, double max_dist);
+    void addLink(
+        const std::string& id,
+        const std::string& protocol,
+        double max_dist);
 
     /**
      * @brief Updates the features of the link corresponding to the given ID
      * @param id
+     * @param protocol Including object_info, freespace_info and signal_info
      * @param colour
      * @param line_thickness
      * @param opacity
@@ -243,11 +248,12 @@ public:
      * @note If the given ID is invalid, this will be ignored
      */
     void updateLinkSpec(
-        const std::string& id
-        , rviz_visual_tools::Colors colour
-        , double line_thickness
-        , double opacity
-        , double packet_dist);
+        const std::string& id,
+        const std::string& protocol,
+        rviz_visual_tools::Colors colour,
+        double line_thickness,
+        double opacity,
+        double packet_dist);
 
     /**
      * @brief Adds a new RSU-vehicle link to the network
@@ -256,13 +262,15 @@ public:
      * @param third_id
      */
     void addIndirectLink(
-        const std::string& first_id
-        , const std::string& second_id
-        , const std::string& third_id);
+        const std::string& first_id,
+        const std::string& second_id,
+        const std::string& third_id,
+        const std::string& protocol);
 
     /**
      * @brief Updates the features of the link corresponding to the given ID
      * @param id
+     * @param protocol
      * @param colour
      * @param line_thickness
      * @param opacity
@@ -270,11 +278,46 @@ public:
      * @note If the given ID is invalid, this will be ignored
      */
     void updateIndirectLinkSpec(
-        const std::string& id
-        , rviz_visual_tools::Colors colour
-        , double line_thickness
-        , double opacity
-        , double packet_dist);
+        const std::string& id,
+        const std::string& protocol,
+        rviz_visual_tools::Colors colour,
+        double line_thickness,
+        double opacity,
+        double packet_dist);
+
+    /**
+     * @brief Adds a new RSU-vehicle link to the network
+     * @param obu_id
+     * @param rsu_id
+     * @param protocol Including object_info, freespace_info and signal_info
+     * @param max_dist The maximum distance at which the link stays visually connected
+     * @note The given ID must be unique, or this will be ignored
+     */
+    void addAllLinks(
+        const std::string& obu_id,
+        const std::string& rsu_id,
+        const std::string& protocol
+        double max_dist);
+
+    /**
+     * @brief Updates the features of the link corresponding to the given ID
+     * @param obu_id
+     * @param rsu_id
+     * @param protocol Including object_info, freespace_info and signal_info
+     * @param colour
+     * @param line_thickness
+     * @param opacity
+     * @param packet_dist
+     * @note If the given ID is invalid, this will be ignored
+     */
+    void updateAllLinkSpecs(
+        const std::string& obu_id,
+        const std::string& rsu_id,
+        const std::string& protocol,
+        rviz_visual_tools::Colors colour,
+        double line_thickness,
+        double opacity,
+        double packet_dist);
 
     /**
      * @brief Activates links as having a flow of data
@@ -378,9 +421,7 @@ public:
     */
     void addToOnlineHeatmap(
         const std::string& id
-        , double x
-        , double y
-        , double z
+        , const std::string& obu_id
         , double value);
 
     /**

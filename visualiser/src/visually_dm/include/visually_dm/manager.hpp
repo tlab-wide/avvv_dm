@@ -70,24 +70,52 @@ public:
     ~Visualiser();
 
     /**
-     * @brief Adds a detection to the visualiser and subscribes to the relevant topic to get updates
+     * @brief Adds a detection to the visualiser and subscribes to the relevant topic
+     * to get updates related to RSUs
      * @param topic The topic on which the updates related to the detections comes from
      * @param detected_colour The colour the detections
     */
-    void addDetection(
+    void addRsuDetection(
         const std::string& topic
         , std::string detected_colour);
 
     /**
-     * @brief Adds a freespace to the visualiser and subscribes to the relevant topic to get updates
+     * @brief Adds a detection to the visualiser and subscribes to the relevant topic
+     * to get updates related to OBUs
+     * @param topic The topic on which the updates related to the detections comes from
+     * @param detected_colour The colour the detections
+     * @param add_online_heatmap Whether or not to include online heatmaps processing
+    */
+    void addObuDetection(
+        const std::string& topic
+        , std::string detected_colour
+        , bool add_online_heatmap);
+
+    /**
+     * @brief Adds a freespace to the visualiser and subscribes to the relevant topic
+     * to get updates related to RSUs
      * @param topic The topic on which the freespace data comes in
      * @param freespace_colour The colour the freespace data gets visualised by
      * @param freespace_width The width of the line for the freespace
     */
-    void addFreespace(
+    void addRsuFreespace(
         const std::string& topic
         , std::string freespace_colour
         , double freespace_width);
+
+    /**
+     * @brief Adds a freespace to the visualiser and subscribes to the relevant topic
+     * to get updates related to OBUs
+     * @param topic The topic on which the freespace data comes in
+     * @param freespace_colour The colour the freespace data gets visualised by
+     * @param freespace_width The width of the line for the freespace
+     * @param add_online_heatmap Whether or not to include online heatmaps processing
+    */
+    void addObuFreespace(
+        const std::string& topic
+        , std::string freespace_colour
+        , double freespace_width
+        , bool add_online_heatmap);
 
     /**
      * @brief Adds RSUs to the visualiser and subscribes to the relevant topics to get updates
@@ -121,13 +149,17 @@ public:
     void addLinkList(const std::vector<std::string>& link_list);
 
     /**
-     * @brief Adds traffic signals to the visualiser and subscribes to the relevant topic to get updates
+     * @brief Adds traffic signals to the visualiser and subscribes to the
+     * relevant topic to get updates related to OBUs
      * @param signal_list The list of the signal specification
-     * @param topic The signal_info topic that provides update data for the traffic signals
+     * @param topic The signal_info topic that provides update data for the
+     * traffic signals
+     * @param add_online_heatmap Whether or not to include online heatmaps processing
     */
-    void addSignalList(
+    void addObuSignalList(
         const std::vector<std::string>& signal_list
-        , const std::string& topic);
+        , const std::vector<std::string>& topics
+        , bool add_online_heatmap);
 
     /**
      * @brief Sets the base_altitude member attribute of the Rviz Tools
@@ -147,13 +179,6 @@ public:
         , const std::string& rsu_id
         , const std::string& obu_id
         , int network_attr);
-
-    /**
-     * @brief Adds all online heatmap types to art.
-     * @note Call this member function after you've added all the
-     * RSUs and OBUs
-    */
-    void addOnlineHeatmaps();
 
 private:
     /**
@@ -180,32 +205,33 @@ private:
      * @brief Displays the detected objects
      * @param msg
      * @param detection_id
-     * @param connected_link_ids The list containing transmitting links for the topic
     */
     void detectionMessageCallback(
         const dm_object_info_msgs::msg::ObjectInfoArray& msg
-        , const std::string& detection_id
-        , const std::vector<std::string> connected_link_ids);
+        , const std::string& detection_id);
 
     /**
      * @brief Displays the freespace
      * @param msg
      * @param freespace_id
-     * @param connected_link_ids The list containing transmitting links for the topic
     */
     void freespaceMessageCallback(
         const dm_freespace_info_msgs::msg::FreespaceInfoArray& msg
-        , const std::string& freespace_id
-        , const std::vector<std::string> connected_link_ids);
+        , const std::string& freespace_id);
 
     /**
      * @brief Displays the signal data
      * @param msg
-     * @param connected_link_ids The list containing transmitting links for the topic
     */
     void signalMessageCallback(
-        const dm_signal_info_msgs::msg::SignalInfoArray& msg
-        , const std::vector<std::string> connected_link_ids);
+        const dm_signal_info_msgs::msg::SignalInfoArray& msg);
+
+    /**
+     * @brief Update network informations
+     * @param msg
+    */
+    void networkMessageCallback(
+        const dm_network_info_msgs::msg::NetworkStatus& msg);
 
     /**
      * @brief Gets the list of the connected links
@@ -234,17 +260,21 @@ private:
     std::mutex art_lock_;
 
     // The subscriptions on different topics and message types
-    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::ObjectInfoN>>> object_info_subscriptions_;
-    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::SignalInfoN>>> signal_info_subscriptions_;
-    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::FreespaceInfoN>>> freespace_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_object_info_msgs::msg::ObjectInfoArray>>> object_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_signal_info_msgs::msg::SignalInfoArray>>> signal_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_freespace_info_msgs::msg::FreespaceInfoArray>>> freespace_info_subscriptions_;
     std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::ObjectInfoN>>> object_network_info_subscriptions_;
     std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::SignalInfoN>>> signal_network_info_subscriptions_;
     std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::FreespaceInfoN>>> freespace_network_info_subscriptions_;
+    std::vector<std::shared_ptr<rclcpp::Subscription<dm_network_info_msgs::msg::NetworkStatus>>> network_status_subscriptions_;
     std::vector<std::shared_ptr<rclcpp::Subscription<tf2_msgs::msg::TFMessage>>> tf_subscriptions_;
     
     net_status::NetStatusRepr net_status_repr_;
 
     double rsu_obu_con_dist_;
+
+    const std::regex obu_rgx_{ "(OBU_\\d+)" };
+    const std::regex link_rgx_{ "/(OBU_\\d+)/(RSU_\\d+)/([a-z]+_info)/network_status" };
 };
 
 } // namespace common

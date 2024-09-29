@@ -47,19 +47,21 @@ int main(int argc, char** argv)
 	node->declare_parameter<int>("rssi_worst");
 	node->declare_parameter<double>("packet_loss_best");
 	node->declare_parameter<double>("packet_loss_worst");
-	node->declare_parameter<std::string>("rsu_detection_topic");
-	node->declare_parameter<std::string>("obu_detection_topic");
-	node->declare_parameter<std::string>("freespace_topic");
-	node->declare_parameter<std::string>("signal_topic");
-	node->declare_parameter<std::vector<std::string>>("rsu_topics");
+	node->declare_parameter<std::vector<std::string>>("rsu_detection_topics");
+	node->declare_parameter<std::vector<std::string>>("obu_detection_topics");
+	node->declare_parameter<std::vector<std::string>>("rsu_freespace_topics");
+	node->declare_parameter<std::vector<std::string>>("obu_freespace_topics");
+	node->declare_parameter<std::vector<std::string>>("rsu_signal_topics");
+	node->declare_parameter<std::vector<std::string>>("obu_signal_topics");
 	node->declare_parameter<std::vector<std::string>>("obu_topics");
 	node->declare_parameter<std::string>("target_rsu_id");
 	node->declare_parameter<std::string>("target_obu_id");
 	node->declare_parameter<std::string>("rsu_detected_colour");
 	node->declare_parameter<std::string>("obu_detected_colour");
-	node->declare_parameter<std::string>("freespace_colour");
+	node->declare_parameter<std::string>("rsu_freespace_colour");
+	node->declare_parameter<std::string>("obu_freespace_colour");
 	node->declare_parameter<double>("freespace_width");
-	node->declare_parameter<std::vector<std::string>>("link_list");
+	node->declare_parameter<std::vector<std::string>>("link_topics");
 	node->declare_parameter<std::vector<std::string>>("rsu_list");
 	node->declare_parameter<std::vector<std::string>>("obu_list");
 	node->declare_parameter<std::vector<std::string>>("cloud_list");
@@ -83,23 +85,25 @@ int main(int argc, char** argv)
 	std::vector<double> map_offset_vector{ node->get_parameter("map_offset").as_double_array() };
 
 	// The topics in ROSBAG files corresponding to different concepts
-	std::string rsu_detection_topic{ node->get_parameter("rsu_detection_topic").as_string() };
-	std::string obu_detection_topic{ node->get_parameter("obu_detection_topic").as_string() };
-	std::string freespace_topic{ node->get_parameter("freespace_topic").as_string() };
-	std::string signal_topic{ node->get_parameter("signal_topic").as_string() };
-	std::vector<std::string> rsu_topics{ node->get_parameter("rsu_topics").as_string_array() };
+	std::vector<std::string> rsu_detection_topics{ node->get_parameter("rsu_detection_topics").as_string_array() };
+	std::vector<std::string> obu_detection_topics{ node->get_parameter("obu_detection_topics").as_string_array() };
+	std::vector<std::string> rsu_freespace_topics{ node->get_parameter("rsu_freespace_topics").as_string_array() };
+	std::vector<std::string> obu_freespace_topics{ node->get_parameter("obu_freespace_topics").as_string_array() };
+	std::vector<std::string> rsu_signal_topics{ node->get_parameter("rsu_signal_topics").as_string_array() };
+	std::vector<std::string> obu_signal_topics{ node->get_parameter("obu_signal_topics").as_string_array() };
 	std::vector<std::string> obu_topics{ node->get_parameter("obu_topics").as_string_array() };
 
 	// The different detection colours
 	std::string rsu_detected_colour{ node->get_parameter("rsu_detected_colour").as_string() };
 	std::string obu_detected_colour{ node->get_parameter("obu_detected_colour").as_string() };
-    std::string freespace_colour{ node->get_parameter("freespace_colour").as_string() };
+    std::string rsu_freespace_colour{ node->get_parameter("rsu_freespace_colour").as_string() };
+    std::string obu_freespace_colour{ node->get_parameter("obu_freespace_colour").as_string() };
 
 	// The width of the freespace map
 	double freespace_width{ node->get_parameter("freespace_width").as_double() };
 
 	// The link endpoints
-	std::vector<std::string> link_list{ node->get_parameter("link_list").as_string_array() };
+	std::vector<std::string> link_topics{ node->get_parameter("link_topics").as_string_array() };
 
 	// The ID and pose of the RSU, OBU and signal light
 	std::vector<std::string> rsu_list{ node->get_parameter("rsu_list").as_string_array() };
@@ -145,7 +149,7 @@ int main(int argc, char** argv)
 		, node->get_parameter("packet_loss_worst").as_double()
 	};
 	
-	double map_offset[3]{ map_offset_vector[0] , map_offset_vector[1], map_offset_vector[2]};
+	double map_offset[3]{ map_offset_vector[0] , map_offset_vector[1], map_offset_vector[2] };
 
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -167,19 +171,35 @@ int main(int argc, char** argv)
 	pointcloud_tools::PointcloudTools apt(*node, base_frame);
 
 	try {
-		visualiser.addDetection(
-			rsu_detection_topic,
-			rsu_detected_colour);
+		for (auto& rsu_detection_topic : rsu_detection_topics)
+			visualiser.addRsuDetection(
+				rsu_detection_topic,
+				rsu_detected_colour);
 
-		visualiser.addDetection(
-			obu_detection_topic,
-			obu_detected_colour);
+		for (auto& obu_detection_topic : obu_detection_topics)
+			visualiser.addObuDetection(
+				obu_detection_topic,
+				obu_detected_colour,
+				on_hm);
 
-		visualiser.addFreespace(freespace_topic, freespace_colour, freespace_width);
+		for (auto& rsu_freespace_topic : rsu_freespaces_topics)
+			visualiser.addRsuFreespace(
+				rsu_freespace_topic,
+				rsu_freespace_colour,
+				freespace_width);
 
-		visualiser.addSignalList(signal_list, signal_topic);
+		for (auto& obu_freespace_topic : obu_freespaces_topics)
+			visualiser.addRsuFreespace(
+				obu_freespace_topic,
+				obu_freespace_colour,
+				freespace_width,
+				on_hm);
 
-		visualiser.addLinkList(link_list);
+		
+		visualiser.addSignalList(
+			signal_list,
+			obu_signal_topics,
+			on_hm);
 
 		visualiser.addRsuList(rsu_list, rsu_topics);
 
@@ -187,6 +207,8 @@ int main(int argc, char** argv)
 
 		visualiser.addCloudList(cloud_list);
 		
+		visualiser.addLinkList(link_topics);
+
 		if (off_hm_path.length())
 			visualiser.addOfflineHeatmap(
 				off_hm_path,
@@ -194,9 +216,6 @@ int main(int argc, char** argv)
 				target_obu_id,
 				off_hm_net_attr);
 		
-		if (on_hm)
-			visualiser.addOnlineHeatmaps();
-
 		// Loading the Pointcloud file
 		if (pcd_filename.length())
 			apt.loadFile(pcd_filename, map_offset, false);

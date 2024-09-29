@@ -31,50 +31,145 @@ Visualiser::~Visualiser()
 
 }
 
-void Visualiser::addDetection(
+void Visualiser::addRsuDetection(
     const std::string& topic
-    , std::string detected_colour
-    , bool add_online_heatmap)
+    , std::string obu_detected_colour)
 {
-    std::vector<std::string> connected_link_ids;
-    std::string ros_topic;
-    getConnectedLinks(topic, ros_topic, connected_link_ids);
-    
-    auto detection_id{ ros_topic + "/detections" };
+    auto detection_id{ topic + "/detections" };
     art_.addDetection(
         detection_id
         , detected_colour);
     
     object_info_subscriptions_.push_back(
         node_->create_subscription<dm_object_info_msgs::msg::ObjectInfoArray>(
-            ros_topic
+            topic
             , 10
-            , [this, detection_id, connected_link_ids](const dm_object_info_msgs::msg::ObjectInfoArray& msg) -> void {
-                detectionMessageCallback(msg, detection_id, connected_link_ids);
+            , [this, detection_id, add_online_heatmap](
+                    const dm_object_info_msgs::msg::ObjectInfoArray& msg) -> void {
+                detectionMessageCallback(msg, detection_id);
             })
     );
 }
 
-void Visualiser::addFreespace(
+void Visualiser::addObuDetection(
+    const std::string& topic
+    , std::string detected_colour
+    , bool add_online_heatmap)
+{
+    auto detection_id{ topic + "/detections" };
+    art_.addDetection(
+        detection_id
+        , detected_colour);
+    
+    std::smatch match_results;
+    std::regex_search(topic, match_results, obu_rgx_);
+    auto obu_id{ match_results[1].str() };
+    if (add_online_heatmap) {
+        art_.addOnlineHeatmap(
+            topic + "heatmap/delay",
+            net_status_repr_,
+            0);
+        art_.addOnlineHeatmap(
+            topic + "heatmap/jitter",
+            net_status_repr_,
+            1);
+        art_.addOnlineHeatmap(
+            topic + "heatmap/rssi",
+            net_status_repr_,
+            2);
+        art_.addOnlineHeatmap(
+            topic + "heatmap/packet_loss",
+            net_status_repr_,
+            3);
+    }
+
+    object_network_info_subscriptions_.push_back(
+        node_->create_subscription<dm_network_info_msgs::msg::ObjectInfoN>(
+            topic
+            , 10
+            , [this, detection_id, add_online_heatmap, topic, obu_id](
+                    const dm_network_info_msgs::msg::ObjectInfoN& msg) -> void {
+                detectionMessageCallback(msg.object_info_array, detection_id);
+
+                if (add_online_heatmap) {
+                    art_.addToOnlineHeatmap(topic + "heatmap/delay", obu_id, msg.network_status.delay);
+                    art_.addToOnlineHeatmap(topic + "heatmap/jitter", obu_id, msg.network_status.jitter);
+                    art_.addToOnlineHeatmap(topic + "heatmap/rssi", obu_id, msg.network_status.rssi);
+                    art_.addToOnlineHeatmap(topic + "heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
+                }
+            })
+    );
+}
+
+void Visualiser::addRsuFreespace(
     const std::string& topic
     , std::string freespace_colour
     , double freespace_width)
 {
-    std::vector<std::string> connected_link_ids;
-    std::string ros_topic;
-    getConnectedLinks(topic, ros_topic, connected_link_ids);
-
-    auto freespace_id{ ros_topic + "/freespaces" };
+    auto freespace_id{ topic + "/freespaces" };
     art_.addFreespace(
         freespace_id
         , freespace_colour
         , freespace_width);
     freespace_info_subscriptions_.push_back(
         node_->create_subscription<dm_freespace_info_msgs::msg::FreespaceInfoArray>(
-            ros_topic
+            topic
             , 10
-            , [this, freespace_id, connected_link_ids](const dm_freespace_info_msgs::msg::FreespaceInfoArray& msg) -> void {
-                freespaceMessageCallback(msg, freespace_id, connected_link_ids);
+            , [this, freespace_id](
+                    const dm_freespace_info_msgs::msg::FreespaceInfoArray& msg) -> void {
+                freespaceMessageCallback(msg, freespace_id);
+            })
+    );
+}
+
+void Visualiser::addObuFreespace(
+    const std::string& topic
+    , std::string freespace_colour
+    , double freespace_width
+    , bool add_online_heatmap)
+{
+    auto freespace_id{ topic + "/freespaces" };
+    art_.addFreespace(
+        freespace_id
+        , freespace_colour
+        , freespace_width);
+    
+    std::smatch match_results;
+    std::regex_search(topic, match_results, obu_rgx_);
+    auto obu_id{ match_results[1].str() };
+    if (add_online_heatmap) {
+        art_.addOnlineHeatmap(
+            topic + "heatmap/delay",
+            net_status_repr_,
+            0);
+        art_.addOnlineHeatmap(
+            topic + "heatmap/jitter",
+            net_status_repr_,
+            1);
+        art_.addOnlineHeatmap(
+            topic + "heatmap/rssi",
+            net_status_repr_,
+            2);
+        art_.addOnlineHeatmap(
+            topic + "heatmap/packet_loss",
+            net_status_repr_,
+            3);
+    }
+
+    freespace_network_info_subscriptions_.push_back(
+        node_->create_subscription<dm_network_info_msgs::msg::FreespaceInfoN>(
+            topic
+            , 10
+            , [this, freespace_id, add_online_heatmap, topic, obu_id](
+                    const dm_network_info_msgs::msg::FreespaceInfoN& msg) -> void {
+                freespaceMessageCallback(msg.freespace_info_array, freespace_id);
+
+                if (add_online_heatmap) {
+                    art_.addToOnlineHeatmap(topic + "heatmap/delay", obu_id, msg.network_status.delay);
+                    art_.addToOnlineHeatmap(topic + "heatmap/jitter", obu_id, msg.network_status.jitter);
+                    art_.addToOnlineHeatmap(topic + "heatmap/rssi", obu_id, msg.network_status.rssi);
+                    art_.addToOnlineHeatmap(topic + "heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
+                }
             })
     );
 }
@@ -181,31 +276,36 @@ void Visualiser::addCloudList(const std::vector<std::string>& cloud_list)
     }
 }
 
-void Visualiser::addLinkList(const std::vector<std::string>& link_list)
+void Visualiser::addLinkList(const std::vector<std::string>& link_topics)
 {
-    std::string first;
-    std::string second;
-    std::string third;
-    for (const auto& link_conf : link_list) {
-        std::istringstream iss(link_conf);
-        iss >> first;
-        iss >> second;
-        iss >> third;
-        if (third.size())
-            art_.addIndirectLink(first, second, third);
-        else
-            art_.addLink(first + second, rsu_obu_con_dist_);
+    std::smatch match_results;
+
+    for (const auto& link_topic : link_topics) {
+        std::regex_search(link_topic, match_results, link_rgx_);
+        art_.addAllLinks(
+            match_results[1].str(), // OBU ID
+            match_results[2].str(), // RSU ID
+            match_results[3].str(), // Protocol name (object, freespace or signal)
+            rsu_obu_con_dist_);
+        
+        network_status_subscriptions_.push_back(
+            node_->create_subscription<dm_network_info_msgs:msg::NetworkStatus>(
+                link_topic
+                , 10
+                , [this, match_results](
+                        const dm_network_info_msgs:msg::NetworkStatus& msg) -> void {
+                    obuTfMessageCallback(msg, obu_id);
+                }
+            )
+        );
     }
 }
 
 void Visualiser::addSignalList(
     const std::vector<std::string>& signal_list
-    , const std::string& topic)
+    , const std::vector<std::string>& topics
+    , bool add_online_heatmap)
 {
-    std::string ros_topic;
-    std::vector<std::string> connected_link_ids;
-    getConnectedLinks(topic, ros_topic, connected_link_ids);
-
     std::string signal_id;
     unsigned crp_id;
     std::string beacon_id;
@@ -261,14 +361,15 @@ void Visualiser::addSignalList(
                 , initial_pose);
     }
 
-    signal_info_subscriptions_.push_back(
-        node_->create_subscription<dm_signal_info_msgs::msg::SignalInfoArray>(
-            ros_topic
-            , 10
-            , [this, connected_link_ids](const dm_signal_info_msgs::msg::SignalInfoArray& msg) -> void {
-                signalMessageCallback(msg, connected_link_ids);
-            })
-    );
+    for (auto& topic : topics)
+        signal_network_info_subscriptions_.push_back(
+            node_->create_subscription<dm_network_info_msgs::msg::SignalInfoN>(
+                topic
+                , 10
+                , [this](const dm_network_info_msgs::msg::SignalInfoN& msg) -> void {
+                    signalMessageCallback(msg.signal_info_array);
+                })
+        );
 }
 
 void Visualiser::addOfflineHeatmap(
@@ -285,34 +386,6 @@ void Visualiser::addOfflineHeatmap(
         , net_status_repr_
         , network_attr);
     art_lock_.unlock();
-}
-
-void Visualiser::addOnlineHeatmaps()
-{
-    art_.addOnlineHeatmap(
-        new_cpmn_id + "_delay"
-        , net_status_repr_
-        , net_status::delay);
-    art_.addOnlineHeatmap(
-        new_cpmn_id + "_jitter"
-        , net_status_repr_
-        , net_status::jitter);
-    art_.addOnlineHeatmap(
-        new_cpmn_id + "_rssi"
-        , net_status_repr_
-        , net_status::rssi);
-    art_.addOnlineHeatmap(
-        new_cpmn_id + "_packet_loss"
-        , net_status_repr_
-        , net_status::packetLoss);
-    online_heatmap_subscriptions_.push_back(
-    node_->create_subscription<cpm_ros_msgs::msg::CPMN>(
-        topic
-        , 10
-        , [this, new_cpmn_id](const cpm_ros_msgs::msg::CPMN& msg) -> void {
-            onlineHeatmapCallback(msg, new_cpmn_id);
-        })
-    );
 }
 
 void Visualiser::setBaseAltitude(double base_altitude)
@@ -352,34 +425,43 @@ void Visualiser::obuTfMessageCallback(
 
 void Visualiser::detectionMessageCallback(
     const dm_object_info_msgs::msg::ObjectInfoArray& msg
-    , const std::string& detection_id
-    , const std::vector<std::string> connected_link_ids)
+    , const std::string& detection_id)
 {
     art_.updateDetection(detection_id);
     art_.updateDetection(detection_id, msg.array);
-    art_.activateLinks(connected_link_ids);
 }
 
 void Visualiser::freespaceMessageCallback(
     const dm_freespace_info_msgs::msg::FreespaceInfoArray& msg
-    , const std::string& freespace_id
-    , const std::vector<std::string> connected_link_ids)
+    , const std::string& freespace_id)
 {
     art_.updateFreespace(freespace_id);
     art_.updateFreespace(freespace_id, msg.array);
-    art_.activateLinks(connected_link_ids);
 }
 
 void Visualiser::signalMessageCallback(
-    const dm_signal_info_msgs::msg::SignalInfoArray& msg
-    , const std::vector<std::string> connected_link_ids)
+    const dm_signal_info_msgs::msg::SignalInfoArray& msg)
 {
-    for (const auto& signal_info : msg.array) {
+    for (const auto& signal_info : msg.array)
         art_.updateSignal(
             signal_info.crp_id.value
             , signal_info);
-    }
-    art_.activateLinks(connected_link_ids);
+}
+
+void Visualiser::networkMessageCallback(
+    const dm_network_info_msgs::msg::NetworkStatus& msg,
+    const std::string& rsu_id,
+    const std::string& obu_id,
+    const std::string& protocol)
+{
+    art_.updateAllLinkSpecs(
+        rsu_id,
+        obu_id,
+        protocol,
+        net_status_repr_.getColour[link_colour_](msg),
+        net_status_repr_.getThickness[link_thickness_](msg),
+        net_status_repr_.getOpacity[link_opacity_](msg),
+        net_status_repr_.getPacketDensity[link_packet_density_](msg));
 }
 
 void Visualiser::getConnectedLinks(

@@ -131,6 +131,11 @@ void Mesh::toggleDisplayInfo()
     display_info_ = not display_info_;
 }
 
+geometry_msgs::msg::Pose Mesh::getPose() const
+{
+    return pose_;
+}
+
 geometry_msgs::msg::Point Mesh::getReceiverPoint()
 {
     return receiver_position_;
@@ -621,6 +626,11 @@ Link::~Link()
 
 }
 
+void Link::addProtocol(const std::string& protocol)
+{
+    link_infos_.emplace(protocol, LinkInformation{});
+}
+
 void Link::updateEndpoint(
     const std::string& end_point_id
     , const geometry_msgs::msg::Point& point)
@@ -637,15 +647,16 @@ void Link::updateEndpoint(
 }
 
 void Link::updateLinkSpecs(
-    rviz_visual_tools::Colors colour
-    , double thickness
-    , double opacity
-    , double packet_dist)
+    const std::string& protocol,
+    rviz_visual_tools::Colors colour,
+    double thickness,
+    double opacity,
+    double packet_dist)
 {
-    colour_ = colour;
-    line_thickness_ = thickness;
-    opacity_ = opacity;
-    packet_dist_ = packet_dist;
+    link_infos_.at(protocol).colour_ = colour;
+    link_infos_.at(protocol).line_thickness_ = thickness;
+    link_infos_.at(protocol).opacity_ = opacity;
+    link_infos_.at(protocol).packet_dist_ = packet_dist;
 }
 
 void Link::activate()
@@ -655,33 +666,41 @@ void Link::activate()
 
 void Link::publishUpdates()
 {
-    if (valid_point_i_ and valid_point_o_
-            and std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - last_active_time_).count() < idle_time_
-            and transforms::dist(point_i_, point_o_) <= max_dist_) {
-        line_.points.clear();
-        line_.points.push_back(point_i_);
-        line_.points.push_back(point_o_);
-        line_.color = rvizer_.getColor(colour_);
-        rvizer_.publishMarker(line_);
+    static bool valid_points;
+    valid_points = valid_point_i_ and valid_point_o_;
+    static bool active;
+    active = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - last_active_time_)
+                .count() < idle_time_;
+    static bool within_max_dist;
+    within_max_dist = transforms::dist(point_i_, point_o_) <= max_dist_;
 
-        spheres_.points = getPacketPoints();
-        spheres_.color = rvizer_.getColor(colour_);
-        rvizer_.publishMarker(spheres_);
+    if (valid_points) {
+        if (active and within_max_dist) {
+            line_.points.clear();
+            line_.points.push_back(point_i_);
+            line_.points.push_back(point_o_);
+            line_.color = rvizer_.getColor(colour_);
+            rvizer_.publishMarker(line_);
+
+            spheres_.points = getPacketPoints();
+            spheres_.color = rvizer_.getColor(colour_);
+            rvizer_.publishMarker(spheres_);
+        }
+        else {
+            rvizer_.setAlpha(opacity_);
+            
+            spheres_.points.clear();
+            rvizer_.publishMarker(spheres_);
+
+            line_.points.clear();
+            line_.points.push_back(point_i_);
+            line_.points.push_back(point_o_);
+            line_.color = rvizer_.getColor(rviz_visual_tools::WHITE);
+            rvizer_.publishMarker(line_);
+        }
+        rvizer_.trigger();
     }    
-    else if (valid_point_i_ and valid_point_o_) {
-        rvizer_.setAlpha(opacity_);
-        
-        spheres_.points.clear();
-        rvizer_.publishMarker(spheres_);
-
-        line_.points.clear();
-        line_.points.push_back(point_i_);
-        line_.points.push_back(point_o_);
-        line_.color = rvizer_.getColor(rviz_visual_tools::WHITE);
-        rvizer_.publishMarker(line_);
-    }
-    rvizer_.trigger();
 }
 
 std::vector<geometry_msgs::msg::Point> Link::getPacketPoints()

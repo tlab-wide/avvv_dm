@@ -41,35 +41,79 @@ LANELET_FILENAME = ""
 RSU_OBU_CON_DIST = 300.0
 
 # Topics and their transmitting links
-RSU_DETECTION_TOPIC = "/object_info/dm [ RSU_0 OBU_0 | RSU_1 OBU_0 | RSU_2 OBU_0 | RSU_0 CLD_0 OBU_0 | RSU_1 CLD_0 OBU_0 | RSU_2 CLD_0 OBU_0 ]"
+RSU_DETECTION_TOPICS = [
+    "/RSU_1/object_info",
+    "/RSU_2/object_info",
+    "/RSU_3/object_info",
+    "/RSU_4/object_info",
+]
 
-OBU_DETECTION_TOPIC = "/empty"
+OBU_DETECTION_TOPICS = [
+    "/OBU_1/RSU_1/object_infon",
+    "/OBU_1/RSU_2/object_infon",
+    "/OBU_1/RSU_3/object_infon",
+    "/OBU_1/RSU_4/object_infon",
+]
 
-FREESPACE_TOPIC = "/freespace_info/dm [ RSU_0 CLD_0 OBU_0 | RSU_1 CLD_0 OBU_0 | RSU_2 CLD_0 OBU_0 ]"
+RSU_FREESPACE_TOPICS = [
+    "/RSU_1/freespace_info",
+    "/RSU_2/freespace_info",
+    "/RSU_3/freespace_info",
+    "/RSU_4/freespace_info",
+]
 
-SIGNAL_TOPIC = "/signal_info/dm [ RSU_0 OBU_0 | RSU_1 OBU_0 | RSU_2 OBU_0 | RSU_0 CLD_0 OBU_0 | RSU_1 CLD_0 OBU_0 | RSU_2 CLD_0 OBU_0 ]"
+OBU_FREESPACE_TOPICS = [
+    "/OBU_1/RSU_1/freespace_infon",
+    "/OBU_1/RSU_2/freespace_infon",
+    "/OBU_1/RSU_3/freespace_infon",
+    "/OBU_1/RSU_4/freespace_infon",
+]
 
-# RSU_TOPICS must match the order in RSU_LIST
-RSU_TOPICS = [
-    "/rsu_0/tf",
-    "/rsu_1/tf",
-    "/rsu_2/tf",
+RSU_SIGNAL_TOPICS = [
+    "/RSU_1/signal_info",
+    "/RSU_2/signal_info",
+    "/RSU_3/signal_info",
+    "/RSU_4/signal_info",
+]
+
+OBU_SIGNAL_TOPICS = [
+    "/OBU_1/RSU_1/signal_infon",
+    "/OBU_1/RSU_2/signal_infon",
+    "/OBU_1/RSU_3/signal_infon",
+    "/OBU_1/RSU_4/signal_infon",
+]
+
+# OBU_TOPICS must match the order in OBU_LIST
+OBU_TOPICS = [
+    "/OBU_1/tf",
+]
+
+# Link endpoints
+# In format "RSU_ID OBU_ID" or "RSU_ID CLOUD_ID OBU_ID"
+LINK_TOPICS = [
+    "/OBU_1/RSU_1/object_info/network_status",
+    "/OBU_1/RSU_1/freespace_info/network_status",
+    "/OBU_1/RSU_1/signal_info/network_status",
+    "/OBU_1/RSU_2/object_info/network_status",
+    "/OBU_1/RSU_2/freespace_info/network_status",
+    "/OBU_1/RSU_2/signal_info/network_status",
+    "/OBU_1/RSU_3/object_info/network_status",
+    "/OBU_1/RSU_3/freespace_info/network_status",
+    "/OBU_1/RSU_4/object_info/network_status",
+    "/OBU_1/RSU_4/freespace_info/network_status",
+    "/OBU_1/RSU_4/signal_info/network_status",
 ]
 
 # Pointcloud and lanelet map offset (x, y, z in metres)
 MAP_OFFSET = [0.0, 0.0, 0.0]
 
-# OBU_TOPICS must match the order in OBU_LIST
-OBU_TOPICS = [
-    "/obu_0/tf",
-]
-
 OBU_LIDAR = "/"
 
-RSU_DETECTED_COLOUR = "cyan"
-OBU_DETECTED_COLOUR = "pink"
+RSU_DETECTED_COLOUR = "red"
+OBU_DETECTED_COLOUR = "cyan"
 
-FREESPACE_COLOUR = "purple"
+RSU_FREESPACE_COLOUR = "yellow"
+OBU_FREESPACE_COLOUR = "purple"
 
 FREESPACE_WIDTH = 8.0
 
@@ -78,14 +122,15 @@ FREESPACE_WIDTH = 8.0
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 RSU_LIST = [
-    "RSU_0 3837 73743 20 330",
-    "RSU_1 3774 73711 20 330",
-    "RSU_2 3714 73679 20 330",
+    "RSU_1 4248.971 73445.545 20 330",
+    "RSU_2 4512.198 72932.515 20 330",
+    "RSU_3 4856.297 73143.781 20 330",
+    "RSU_4 5175.195 73128.254 20 330",
 ]
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 OBU_LIST = [
-    "OBU_0 3818 73722 20 210",
+    "OBU_1 3818 73722 20 210",
 ]
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
@@ -129,17 +174,6 @@ SIGNAL_LIST = [
     "PL_17 786433 48 | 3726.18 73684.1 23 210",
 ]
 
-# Link endpoints
-# In format "RSU_ID OBU_ID" or "RSU_ID CLOUD_ID OBU_ID"
-LINKS = [
-    "RSU_0 OBU_0",
-    "RSU_1 OBU_0",
-    "RSU_2 OBU_0",
-    "RSU_0 CLD_0 OBU_0",
-    "RSU_1 CLD_0 OBU_0",
-    "RSU_2 CLD_0 OBU_0",
-]
-
 # The target RSU and OBU for real time graphs and offline heatmaps
 TARGET_RSU_ID = ""
 TARGET_OBU_ID = ""
@@ -170,19 +204,21 @@ VISUALLY_DM_PARAMETERS = [
     {'rssi_worst': RSSI_WORST},
     {'packet_loss_best': PACKET_LOSS_BEST},
     {'packet_loss_worst': PACKET_LOSS_WORST},
-    {'rsu_detection_topic': RSU_DETECTION_TOPIC},
-    {'obu_detection_topic': OBU_DETECTION_TOPIC},
-    {'freespace_topic': FREESPACE_TOPIC},
-    {'signal_topic': SIGNAL_TOPIC},
-    {'rsu_topics': RSU_TOPICS},
+    {'rsu_detection_topic': RSU_DETECTION_TOPICS},
+    {'obu_detection_topic': OBU_DETECTION_TOPICS},
+    {'rsu_freespace_topic': RSU_FREESPACE_TOPICS},
+    {'obu_freespace_topic': OBU_FREESPACE_TOPICS},
+    {'rsu_signal_topic': RSU_SIGNAL_TOPICS},
+    {'obu_signal_topic': OBU_SIGNAL_TOPICS},
     {'obu_topics': OBU_TOPICS},
     {'target_rsu_id': TARGET_RSU_ID},
     {'target_obu_id': TARGET_OBU_ID},
     {'rsu_detected_colour': RSU_DETECTED_COLOUR},
     {'obu_detected_colour': OBU_DETECTED_COLOUR},
-    {'freespace_colour': FREESPACE_COLOUR},
+    {'rsu_freespace_colour': RSU_FREESPACE_COLOUR},
+    {'obu_freespace_colour': OBU_FREESPACE_COLOUR},
     {'freespace_width': FREESPACE_WIDTH},
-    {'link_list': LINKS},
+    {'link_topics': LINK_TOPICS},
     {'rsu_list': RSU_LIST},
     {'obu_list': OBU_LIST},
     {'cloud_list': CLOUD_LIST},
