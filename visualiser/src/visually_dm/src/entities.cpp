@@ -602,6 +602,7 @@ Link::Link(
     , int counter_update_rate)
     : Entity(node, id, base_frame)
     , packet_size_(0.6)
+    , pale_link_thickness_(0.3)
     , valid_point_i_(false)
     , valid_point_o_(false)
     , counter_(0)
@@ -609,7 +610,7 @@ Link::Link(
     , max_dist_(max_dist)
     , frame_id_(base_frame)
 {
-
+    rvizer_.setAlpha(1.0);
 }
 
 Link::~Link()
@@ -624,6 +625,7 @@ void Link::addProtocol(const std::string& protocol)
     link_info.line.ns = "line_" + protocol;
     link_info.line.type = link_info.line.LINE_LIST;
     link_info.line.action = link_info.line.ADD;
+    link_info.line.color.a = 1.0;
 
     link_info.spheres.header.frame_id = frame_id_;
     link_info.spheres.ns = "spheres_" + protocol;
@@ -672,13 +674,17 @@ void Link::activate(const std::string& protocol)
     catch (std::out_of_range&) { }
 }
 
-void Link::publishUpdates()
+void Link::publishUpdates(const std::shared_ptr<rclcpp::Node>& node)
 {
     static bool valid_points;
     static bool active;
     static bool within_max_dist;
     valid_points = valid_point_i_ and valid_point_o_;
     within_max_dist = transforms::dist(point_i_, point_o_) <= max_dist_;
+
+    RCLCPP_INFO(node->get_logger(), "link publish: %s", id_.c_str());
+    RCLCPP_INFO(node->get_logger(), "valid points: %d", valid_points);
+    RCLCPP_INFO(node->get_logger(), "valid points: %d", within_max_dist);
 
     if (valid_points) {
         for (auto& link_info : link_infos_) {
@@ -698,18 +704,25 @@ void Link::publishUpdates()
                 link_info.second.spheres.points = getPacketPoints(link_info.second.packet_dist);
                 link_info.second.spheres.color = rvizer_.getColor(link_info.second.colour);
                 rvizer_.publishMarker(link_info.second.spheres);
+                RCLCPP_INFO(node->get_logger(), "valid, active, dist: %s", id_.c_str());
             }
             else {
                 rvizer_.setAlpha(link_info.second.opacity);
                 
                 link_info.second.spheres.points.clear();
                 rvizer_.publishMarker(link_info.second.spheres);
-
                 link_info.second.line.points.clear();
                 link_info.second.line.points.push_back(point_i_);
                 link_info.second.line.points.push_back(point_o_);
                 link_info.second.line.color = rvizer_.getColor(rviz_visual_tools::WHITE);
+                link_info.second.line.color.a = 1.0;
+                RCLCPP_INFO(node->get_logger(), "protocol: %s, r: %f, g: %f, b: %f, a: %f", link_info.first.c_str(), link_info.second.line.color.r, link_info.second.line.color.g, link_info.second.line.color.b, link_info.second.line.color.a);
+
+                link_info.second.line.scale.x = pale_link_thickness_;
+                link_info.second.line.scale.y = pale_link_thickness_;
+                link_info.second.line.scale.z = pale_link_thickness_;
                 rvizer_.publishMarker(link_info.second.line);
+                RCLCPP_INFO(node->get_logger(), "valid: %s", id_.c_str());
             }
         }
         rvizer_.trigger();

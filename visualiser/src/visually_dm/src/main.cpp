@@ -200,14 +200,14 @@ int main(int argc, char** argv)
 			signal_list,
 			obu_signal_topics,
 			on_hm);
+		
+		visualiser.addLinkList(link_topics, cloud_list);
 
 		visualiser.addRsuList(rsu_list);
 
 		visualiser.addObuList(obu_list, obu_topics);
 
 		visualiser.addCloudList(cloud_list);
-		
-		visualiser.addLinkList(link_topics);
 
 		if (off_hm_path.length())
 			visualiser.addOfflineHeatmap(

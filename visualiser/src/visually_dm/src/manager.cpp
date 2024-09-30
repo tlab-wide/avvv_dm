@@ -262,9 +262,19 @@ void Visualiser::addCloudList(const std::vector<std::string>& cloud_list)
     }
 }
 
-void Visualiser::addLinkList(const std::vector<std::string>& link_topics)
+void Visualiser::addLinkList(
+    const std::vector<std::string>& link_topics,
+        const std::vector<std::string>& cloud_list)
 {
     std::smatch match_results;
+
+    std::vector<std::string> cloud_ids;
+    for (const auto& cloud_conf : cloud_list) {
+        std::string cloud_id;
+        std::istringstream iss(cloud_conf);
+        iss >> cloud_id;
+        cloud_ids.push_back(cloud_id);
+    }
 
     for (const auto& link_topic : link_topics) {
         std::regex_search(link_topic, match_results, link_rgx_);
@@ -272,7 +282,8 @@ void Visualiser::addLinkList(const std::vector<std::string>& link_topics)
             match_results[1].str(), // OBU ID
             match_results[2].str(), // RSU ID
             match_results[3].str(), // Protocol name (object, freespace or signal)
-            rsu_obu_con_dist_);
+            rsu_obu_con_dist_,
+            cloud_ids);
         
         network_status_subscriptions_.push_back(
             node_->create_subscription<dm_network_info_msgs::msg::NetworkStatus>(

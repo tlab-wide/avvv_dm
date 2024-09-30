@@ -39,7 +39,7 @@ namespace entities
 {
 
 // The time in milliseconds after which with no incoming updates, entities are considered idle
-constexpr int idle_time_{ 200 };
+constexpr int idle_time_{ 2000 };
 
 // The number of points that make up the echo circle lines
 constexpr std::size_t echo_line_points{ 100 };
@@ -570,7 +570,7 @@ public:
     /**
      * @brief Publishes the updates to RViz
     */
-    void publishUpdates();
+    void publishUpdates(const std::shared_ptr<rclcpp::Node>& node);
 
 private:
     /**
@@ -582,6 +582,7 @@ private:
         double packet_dist);
 
     double packet_size_;
+    double pale_link_thickness_;
 
     std::map<std::string, LinkInformation> link_infos_;
 

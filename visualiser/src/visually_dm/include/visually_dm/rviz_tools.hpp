@@ -291,13 +291,16 @@ public:
      * @param rsu_id
      * @param protocol Including object_info, freespace_info and signal_info
      * @param max_dist The maximum distance at which the link stays visually connected
+     * @param cloud_ids The list all cloud IDs that will later be added to the
+     * visualiser
      * @note The given ID must be unique, or this will be ignored
      */
     void addAllLinks(
         const std::string& obu_id,
         const std::string& rsu_id,
         const std::string& protocol,
-        double max_dist);
+        double max_dist,
+        const std::vector<std::string>& cloud_ids);
 
     /**
      * @brief Updates the features of the link corresponding to the given ID

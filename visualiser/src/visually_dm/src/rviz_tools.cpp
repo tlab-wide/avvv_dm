@@ -354,8 +354,7 @@ void RvizTools::updateLinkSpec(
             opacity,
             packet_dist);
     }
-    catch (std::out_of_range&) {
-    }
+    catch (std::out_of_range&) { }
 }
 
 void RvizTools::addIndirectLink(
@@ -416,19 +415,19 @@ void RvizTools::updateIndirectLinkSpec(
             opacity,
             packet_dist);
     }
-    catch (std::out_of_range&) {
-    }
+    catch (std::out_of_range&) { }
 }
 
 void RvizTools::addAllLinks(
     const std::string& obu_id,
     const std::string& rsu_id,
     const std::string& protocol,
-    double max_dist)
+    double max_dist,
+    const std::vector<std::string>& cloud_ids)
 {
     addLink(rsu_id + obu_id, protocol, max_dist);
-    for (const auto& cloud : clouds_)
-        addIndirectLink(rsu_id, cloud.first, obu_id, protocol);
+    for (const auto& cloud : cloud_ids)
+        addIndirectLink(rsu_id, cloud, obu_id, protocol);
 }
 
 void RvizTools::updateAllLinkSpecs(
@@ -473,12 +472,15 @@ void RvizTools::activateIndirectLinks(
     const std::string& rsu_id,
     const std::string& protocol)
 {
-    for (auto& cloud : clouds_) {
-        link_pairs_.at(rsu_id + cloud.first + obu_id)
-            .rsu2cloud.activate(protocol);
-        link_pairs_.at(rsu_id + cloud.first + obu_id)
-            .cloud2vehicle.activate(protocol);
+    try {
+        for (auto& cloud : clouds_) {
+            link_pairs_.at(rsu_id + cloud.first + obu_id)
+                .rsu2cloud.activate(protocol);
+            link_pairs_.at(rsu_id + cloud.first + obu_id)
+                .cloud2vehicle.activate(protocol);
+        }
     }
+    catch (std::out_of_range&) { }
 }
 
 void RvizTools::addDetection(
@@ -642,16 +644,12 @@ void RvizTools::display()
         freespace.second.publishUpdates();
 
     for (auto& link : links_) {
-        RCLCPP_INFO(node_->get_logger(), "Direct Link:");
-        RCLCPP_INFO(node_->get_logger(), link.first.c_str());
-        link.second.publishUpdates();
+        link.second.publishUpdates(node_);
     }
     
     for (auto& link_pair : link_pairs_) {
-        RCLCPP_INFO(node_->get_logger(), "Indirect Link:");
-        RCLCPP_INFO(node_->get_logger(), link_pair.first.c_str());
-        link_pair.second.rsu2cloud.publishUpdates();
-        link_pair.second.cloud2vehicle.publishUpdates();
+        link_pair.second.rsu2cloud.publishUpdates(node_);
+        link_pair.second.cloud2vehicle.publishUpdates(node_);
     }
 
     int_server_.applyChanges();
