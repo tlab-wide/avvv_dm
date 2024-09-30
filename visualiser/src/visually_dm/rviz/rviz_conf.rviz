@@ -36,9 +36,67 @@ Visualization Manager:
       Show Descriptions: false
       Show Visual Aids: false
       Value: true
+
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: RSU Objects
+      Name: RSU_1 Objects
+      Namespaces:
+        Cuboid: true
+        Text: true
+        Wireframe Cuboid: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_1/object_info/detections
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_2 Objects
+      Namespaces:
+        Cuboid: true
+        Text: true
+        Wireframe Cuboid: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_2/object_info/detections
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_3 Objects
+      Namespaces:
+        Cuboid: true
+        Text: true
+        Wireframe Cuboid: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_3/object_info/detections
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_4 Objects
+      Namespaces:
+        Cuboid: true
+        Text: true
+        Wireframe Cuboid: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_4/object_info/detections
+      Value: true
+
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: OBU_1 Objects From RSU_1
       Namespaces:
         {}
       Topic:
@@ -46,11 +104,11 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /object_info/dm/detections
+        Value: /OBU_1/RSU_1/object_infon/detections
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: OBU Objects
+      Name: OBU_1 Objects From RSU_2
       Namespaces:
         {}
       Topic:
@@ -58,11 +116,11 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /empty/detections
+        Value: /OBU_1/RSU_2/object_infon/detections
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: Freespace
+      Name: OBU_1 Objects From RSU_3
       Namespaces:
         {}
       Topic:
@@ -70,22 +128,119 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /freespace_info/dm/freespaces
+        Value: /OBU_1/RSU_3/object_infon/detections
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: RSU_0
+      Name: OBU_1 Objects From RSU_4
       Namespaces:
-        dpath: true
-        mesh: true
-        spath: true
+        {}
       Topic:
         Depth: 1
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /RSU_0
+        Value: /OBU_1/RSU_4/object_infon/detections
       Value: true
+
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_1 Freespaces
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_1/freespace_info/freespaces
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_2 Freespaces
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_2/freespace_info/freespaces
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_3 Freespaces
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_3/freespace_info/freespaces
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_4 Freespaces
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_4/freespace_info/freespaces
+      Value: true
+
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: OBU_1 Freespaces From RSU_1
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /OBU_1/RSU_1/freespace_infon/freespaces
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: OBU_1 Freespaces From RSU_2
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /OBU_1/RSU_2/freespace_infon/freespaces
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: OBU_1 Freespaces From RSU_3
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /OBU_1/RSU_3/freespace_infon/freespaces
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: OBU_1 Freespaces From RSU_4
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /OBU_1/RSU_4/freespace_infon/freespaces
+      Value: true
+
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: RSU_1
@@ -116,7 +271,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: OBU_0
+      Name: RSU_3
       Namespaces:
         dpath: true
         mesh: true
@@ -126,8 +281,38 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /OBU_0
+        Value: /RSU_3
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RSU_4
+      Namespaces:
+        dpath: true
+        mesh: true
+        spath: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /RSU_4
+      Value: true
+
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: OBU_1
+      Namespaces:
+        dpath: true
+        mesh: true
+        spath: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /OBU_1
+      Value: true
+
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: CLD_0
@@ -140,90 +325,7 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /CLD_0
       Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_0=OBU_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_0OBU_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_0=CLD_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_0CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_1=OBU_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_1OBU_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_1=CLD_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_1CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_2=OBU_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_2OBU_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_2=CLD_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_2CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: CLD_0=OBU_0
-      Namespaces:
-        Line: true
-      Topic:
-        Depth: 1
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /CLD_0OBU_0
-      Value: true
+
     - Alpha: 0.10000000149011612
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -269,16 +371,12 @@ Visualization Manager:
         lanelet direction: true
         lanelet_id: true
         left_lane_bound: true
-        parking_lots: true
-        parking_space: true
-        pedestrian_marking: true
         right_lane_bound: true
         road_lanelets: true
         stop_lines: true
         traffic_light: true
         traffic_light_id: true
         traffic_light_triangle: true
-        walkway_lanelets: true
       Topic:
         Depth: 1
         Durability Policy: Volatile
@@ -286,9 +384,10 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /vector_map_marker
       Value: true
+
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: Intersection_786433
+      Name: Intersection_790529
       Namespaces:
         light_spheres: true
         mesh: true
@@ -297,11 +396,11 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /Intersection_786433
+        Value: /Intersection_790529
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: Intersection_786434
+      Name: Intersection_798721
       Namespaces:
         light_spheres: true
         mesh: true
@@ -310,11 +409,11 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /Intersection_786434
+        Value: /Intersection_798721
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: Intersection_790531
+      Name: Intersection_2
       Namespaces:
         light_spheres: true
         mesh: true
@@ -323,7 +422,8 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /Intersection_790531
+        Value: /Intersection_2
+
       Value: true
   Enabled: true
   Global Options:

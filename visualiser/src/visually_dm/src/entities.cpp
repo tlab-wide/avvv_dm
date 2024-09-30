@@ -601,24 +601,15 @@ Link::Link(
     , const double max_dist
     , int counter_update_rate)
     : Entity(node, id, base_frame)
-    , colour_(rviz_visual_tools::GREEN)
-    , line_thickness_(0.25)
-    , opacity_(0.8)
     , packet_size_(0.6)
-    , packet_dist_(27.0)
     , valid_point_i_(false)
     , valid_point_o_(false)
     , counter_(0)
     , counter_update_rate_(counter_update_rate)
     , max_dist_(max_dist)
+    , frame_id_(base_frame)
 {
-    line_.header.frame_id = spheres_.header.frame_id = base_frame;
-    line_.ns = "line"; spheres_.ns = "spheres";
-    line_.type = line_.LINE_LIST; spheres_.type = spheres_.SPHERE_LIST;
-    line_.action = spheres_.action = line_.ADD;
-    line_.scale.x = line_thickness_; spheres_.scale.x = packet_size_;
-    line_.scale.y = line_thickness_; spheres_.scale.y = packet_size_;
-    line_.scale.z = line_thickness_; spheres_.scale.z = packet_size_;
+
 }
 
 Link::~Link()
@@ -628,7 +619,20 @@ Link::~Link()
 
 void Link::addProtocol(const std::string& protocol)
 {
-    link_infos_.emplace(protocol, LinkInformation{});
+    LinkInformation link_info;
+    link_info.line.header.frame_id = frame_id_;
+    link_info.line.ns = "line_" + protocol;
+    link_info.line.type = link_info.line.LINE_LIST;
+    link_info.line.action = link_info.line.ADD;
+
+    link_info.spheres.header.frame_id = frame_id_;
+    link_info.spheres.ns = "spheres_" + protocol;
+    link_info.spheres.type = link_info.spheres.SPHERE_LIST;
+    link_info.spheres.action = link_info.spheres.ADD;
+    link_info.spheres.scale.x = packet_size_;
+    link_info.spheres.scale.y = packet_size_;
+    link_info.spheres.scale.z = packet_size_;
+    link_infos_.emplace(protocol, link_info);
 }
 
 void Link::updateEndpoint(
@@ -653,59 +657,71 @@ void Link::updateLinkSpecs(
     double opacity,
     double packet_dist)
 {
-    link_infos_.at(protocol).colour_ = colour;
-    link_infos_.at(protocol).line_thickness_ = thickness;
-    link_infos_.at(protocol).opacity_ = opacity;
-    link_infos_.at(protocol).packet_dist_ = packet_dist;
+    link_infos_.at(protocol).colour = colour;
+    link_infos_.at(protocol).line_thickness = thickness;
+    link_infos_.at(protocol).opacity = opacity;
+    link_infos_.at(protocol).packet_dist = packet_dist;
 }
 
-void Link::activate()
+void Link::activate(const std::string& protocol)
 {
-    last_active_time_ = std::chrono::steady_clock::now();
+    try {
+        link_infos_.at(protocol).last_active_time = 
+            std::chrono::steady_clock::now();
+    }
+    catch (std::out_of_range&) { }
 }
 
 void Link::publishUpdates()
 {
     static bool valid_points;
-    valid_points = valid_point_i_ and valid_point_o_;
     static bool active;
-    active = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - last_active_time_)
-                .count() < idle_time_;
     static bool within_max_dist;
+    valid_points = valid_point_i_ and valid_point_o_;
     within_max_dist = transforms::dist(point_i_, point_o_) <= max_dist_;
 
     if (valid_points) {
-        if (active and within_max_dist) {
-            line_.points.clear();
-            line_.points.push_back(point_i_);
-            line_.points.push_back(point_o_);
-            line_.color = rvizer_.getColor(colour_);
-            rvizer_.publishMarker(line_);
+        for (auto& link_info : link_infos_) {
+            active = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - link_info.second.last_active_time)
+                .count() < idle_time_;
+            if (active and within_max_dist) {
+                link_info.second.line.points.clear();
+                link_info.second.line.points.push_back(point_i_);
+                link_info.second.line.points.push_back(point_o_);
+                link_info.second.line.color = rvizer_.getColor(link_info.second.colour);
+                link_info.second.line.scale.x = link_info.second.line_thickness;
+                link_info.second.line.scale.y = link_info.second.line_thickness;
+                link_info.second.line.scale.z = link_info.second.line_thickness;
+                rvizer_.publishMarker(link_info.second.line);
 
-            spheres_.points = getPacketPoints();
-            spheres_.color = rvizer_.getColor(colour_);
-            rvizer_.publishMarker(spheres_);
-        }
-        else {
-            rvizer_.setAlpha(opacity_);
-            
-            spheres_.points.clear();
-            rvizer_.publishMarker(spheres_);
+                link_info.second.spheres.points = getPacketPoints(link_info.second.packet_dist);
+                link_info.second.spheres.color = rvizer_.getColor(link_info.second.colour);
+                rvizer_.publishMarker(link_info.second.spheres);
+            }
+            else {
+                rvizer_.setAlpha(link_info.second.opacity);
+                
+                link_info.second.spheres.points.clear();
+                rvizer_.publishMarker(link_info.second.spheres);
 
-            line_.points.clear();
-            line_.points.push_back(point_i_);
-            line_.points.push_back(point_o_);
-            line_.color = rvizer_.getColor(rviz_visual_tools::WHITE);
-            rvizer_.publishMarker(line_);
+                link_info.second.line.points.clear();
+                link_info.second.line.points.push_back(point_i_);
+                link_info.second.line.points.push_back(point_o_);
+                link_info.second.line.color = rvizer_.getColor(rviz_visual_tools::WHITE);
+                rvizer_.publishMarker(link_info.second.line);
+            }
         }
         rvizer_.trigger();
     }    
 }
 
-std::vector<geometry_msgs::msg::Point> Link::getPacketPoints()
+std::vector<geometry_msgs::msg::Point> Link::getPacketPoints(
+    double packet_dist)
 {
-    const int num_packets = std::max(1 , int (transforms::dist(point_i_, point_o_) / packet_dist_));
+    const int num_packets = std::max(
+        1,
+        int (transforms::dist(point_i_, point_o_) / packet_dist));
     
     const double x_step = (point_o_.x - point_i_.x) / num_packets;
     const double y_step = (point_o_.y - point_i_.y) / num_packets;

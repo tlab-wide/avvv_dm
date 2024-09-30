@@ -37,14 +37,14 @@ void Visualiser::addRsuDetection(
 {
     auto detection_id{ topic + "/detections" };
     art_.addDetection(
-        detection_id
-        , detected_colour);
+        detection_id,
+        obu_detected_colour);
     
     object_info_subscriptions_.push_back(
         node_->create_subscription<dm_object_info_msgs::msg::ObjectInfoArray>(
-            topic
-            , 10
-            , [this, detection_id, add_online_heatmap](
+            topic,
+            10,
+            [this, detection_id](
                     const dm_object_info_msgs::msg::ObjectInfoArray& msg) -> void {
                 detectionMessageCallback(msg, detection_id);
             })
@@ -66,19 +66,19 @@ void Visualiser::addObuDetection(
     auto obu_id{ match_results[1].str() };
     if (add_online_heatmap) {
         art_.addOnlineHeatmap(
-            topic + "heatmap/delay",
+            topic + "/heatmap/delay",
             net_status_repr_,
             0);
         art_.addOnlineHeatmap(
-            topic + "heatmap/jitter",
+            topic + "/heatmap/jitter",
             net_status_repr_,
             1);
         art_.addOnlineHeatmap(
-            topic + "heatmap/rssi",
+            topic + "/heatmap/rssi",
             net_status_repr_,
             2);
         art_.addOnlineHeatmap(
-            topic + "heatmap/packet_loss",
+            topic + "/heatmap/packet_loss",
             net_status_repr_,
             3);
     }
@@ -92,10 +92,10 @@ void Visualiser::addObuDetection(
                 detectionMessageCallback(msg.object_info_array, detection_id);
 
                 if (add_online_heatmap) {
-                    art_.addToOnlineHeatmap(topic + "heatmap/delay", obu_id, msg.network_status.delay);
-                    art_.addToOnlineHeatmap(topic + "heatmap/jitter", obu_id, msg.network_status.jitter);
-                    art_.addToOnlineHeatmap(topic + "heatmap/rssi", obu_id, msg.network_status.rssi);
-                    art_.addToOnlineHeatmap(topic + "heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/delay", obu_id, msg.network_status.delay);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/jitter", obu_id, msg.network_status.jitter);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/rssi", obu_id, msg.network_status.rssi);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
                 }
             })
     );
@@ -139,19 +139,19 @@ void Visualiser::addObuFreespace(
     auto obu_id{ match_results[1].str() };
     if (add_online_heatmap) {
         art_.addOnlineHeatmap(
-            topic + "heatmap/delay",
+            topic + "/heatmap/delay",
             net_status_repr_,
             0);
         art_.addOnlineHeatmap(
-            topic + "heatmap/jitter",
+            topic + "/heatmap/jitter",
             net_status_repr_,
             1);
         art_.addOnlineHeatmap(
-            topic + "heatmap/rssi",
+            topic + "/heatmap/rssi",
             net_status_repr_,
             2);
         art_.addOnlineHeatmap(
-            topic + "heatmap/packet_loss",
+            topic + "/heatmap/packet_loss",
             net_status_repr_,
             3);
     }
@@ -165,22 +165,18 @@ void Visualiser::addObuFreespace(
                 freespaceMessageCallback(msg.freespace_info_array, freespace_id);
 
                 if (add_online_heatmap) {
-                    art_.addToOnlineHeatmap(topic + "heatmap/delay", obu_id, msg.network_status.delay);
-                    art_.addToOnlineHeatmap(topic + "heatmap/jitter", obu_id, msg.network_status.jitter);
-                    art_.addToOnlineHeatmap(topic + "heatmap/rssi", obu_id, msg.network_status.rssi);
-                    art_.addToOnlineHeatmap(topic + "heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/delay", obu_id, msg.network_status.delay);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/jitter", obu_id, msg.network_status.jitter);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/rssi", obu_id, msg.network_status.rssi);
+                    art_.addToOnlineHeatmap(topic + "/heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
                 }
             })
     );
 }
 
 void Visualiser::addRsuList(
-    const std::vector<std::string>& rsu_list
-    , const std::vector<std::string>& rsu_topics)
-{
-    assert(rsu_list.size() == rsu_topics.size()
-        && "RSU list size not equal to RSU topic size.");
-    
+    const std::vector<std::string>& rsu_list)
+{    
     std::string rsu_id;
     for (unsigned int i{}; i < rsu_list.size(); ++i) {
         std::istringstream iss(rsu_list[i]);
@@ -200,16 +196,6 @@ void Visualiser::addRsuList(
         transforms::getGeometryPose(position, orientation, initial_pose);
         
         art_.updateRsuPose(rsu_id, initial_pose);
-
-        tf_subscriptions_.push_back(
-            node_->create_subscription<tf2_msgs::msg::TFMessage>(
-                rsu_topics[i]
-                , 10
-                , [this, rsu_id](const tf2_msgs::msg::TFMessage& msg) -> void {
-                    rsuTfMessageCallback(msg, rsu_id);
-                }
-            )
-        );
     }
 }
 
@@ -289,19 +275,23 @@ void Visualiser::addLinkList(const std::vector<std::string>& link_topics)
             rsu_obu_con_dist_);
         
         network_status_subscriptions_.push_back(
-            node_->create_subscription<dm_network_info_msgs:msg::NetworkStatus>(
+            node_->create_subscription<dm_network_info_msgs::msg::NetworkStatus>(
                 link_topic
                 , 10
                 , [this, match_results](
-                        const dm_network_info_msgs:msg::NetworkStatus& msg) -> void {
-                    obuTfMessageCallback(msg, obu_id);
+                        const dm_network_info_msgs::msg::NetworkStatus& msg) -> void {
+                    networkMessageCallback(
+                        msg,
+                        match_results[1].str(), // OBU ID
+                        match_results[2].str(), // RSU ID
+                        match_results[3].str()); // Protocol name (object, freespace or signal)
                 }
             )
         );
     }
 }
 
-void Visualiser::addSignalList(
+void Visualiser::addObuSignalList(
     const std::vector<std::string>& signal_list
     , const std::vector<std::string>& topics
     , bool add_online_heatmap)
@@ -361,15 +351,45 @@ void Visualiser::addSignalList(
                 , initial_pose);
     }
 
-    for (auto& topic : topics)
+    for (auto& topic : topics) {
+        std::smatch match_results;
+        std::regex_search(topic, match_results, obu_rgx_);
+        auto obu_id{ match_results[1].str() };
+        if (add_online_heatmap) {
+            art_.addOnlineHeatmap(
+                topic + "/heatmap/delay",
+                net_status_repr_,
+                0);
+            art_.addOnlineHeatmap(
+                topic + "/heatmap/jitter",
+                net_status_repr_,
+                1);
+            art_.addOnlineHeatmap(
+                topic + "/heatmap/rssi",
+                net_status_repr_,
+                2);
+            art_.addOnlineHeatmap(
+                topic + "/heatmap/packet_loss",
+                net_status_repr_,
+                3);
+        }
+
         signal_network_info_subscriptions_.push_back(
             node_->create_subscription<dm_network_info_msgs::msg::SignalInfoN>(
                 topic
                 , 10
-                , [this](const dm_network_info_msgs::msg::SignalInfoN& msg) -> void {
+                , [this, add_online_heatmap, topic, obu_id](const dm_network_info_msgs::msg::SignalInfoN& msg) -> void {
                     signalMessageCallback(msg.signal_info_array);
+                    
+                    if (add_online_heatmap) {
+                        art_.addToOnlineHeatmap(topic + "/heatmap/delay", obu_id, msg.network_status.delay);
+                        art_.addToOnlineHeatmap(topic + "/heatmap/jitter", obu_id, msg.network_status.jitter);
+                        art_.addToOnlineHeatmap(topic + "/heatmap/rssi", obu_id, msg.network_status.rssi);
+                        art_.addToOnlineHeatmap(topic + "/heatmap/packet_loss", obu_id, msg.network_status.packet_loss);
+                    }
                 })
         );
+    }
 }
 
 void Visualiser::addOfflineHeatmap(
@@ -462,6 +482,8 @@ void Visualiser::networkMessageCallback(
         net_status_repr_.getThickness[link_thickness_](msg),
         net_status_repr_.getOpacity[link_opacity_](msg),
         net_status_repr_.getPacketDensity[link_packet_density_](msg));
+    art_.activateDirectLinks(rsu_id, obu_id, protocol);
+    art_.activateIndirectLinks(rsu_id, obu_id, protocol);
 }
 
 void Visualiser::getConnectedLinks(

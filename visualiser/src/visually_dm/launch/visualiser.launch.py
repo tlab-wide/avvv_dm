@@ -79,7 +79,6 @@ RSU_SIGNAL_TOPICS = [
 OBU_SIGNAL_TOPICS = [
     "/OBU_1/RSU_1/signal_infon",
     "/OBU_1/RSU_2/signal_infon",
-    "/OBU_1/RSU_3/signal_infon",
     "/OBU_1/RSU_4/signal_infon",
 ]
 
@@ -135,43 +134,38 @@ OBU_LIST = [
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 CLOUD_LIST = [
-    "CLD_0 3813 73789 60 330",
+    "CLD_0 4600 73200 80 330",
 ]
 
 # In format "TL_ID/PL_ID CRP_ID Beacon_ID_set | easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 SIGNAL_LIST = [
-    # Intersection 1
-    "TL_0 790531 17 18 19 33 34 35 | 3843.5 73732.7 25 30",
-    "PL_0 790531 16 32 | 3845.06 73729.5 23 120",
-    "PL_1 790531 16 32 | 3840.07 73739.1 23 300",
-    "TL_1 790531 17 18 19 33 34 35 | 3857.0 73743.2 25 210",
-    "PL_2 790531 16 32 | 3856.3 73746.9 23 300",
-    "PL_3 790531 16 32 | 3861.2 73737.9 23 120",
-    "TL_2 790531 49 50 51 | 3853.6 73734.6 25 120",
-    "PL_4 790531 48 | 3838 73741.5 23 30",
-    "PL_5 790531 48 | 3849.18 73748.1 23 210",
+    # Intersection A
+    "TL_0 790529 17 18 19 | 4248.618 73454.534 25 210",
+    "PL_0 790529 32 16 | 4252.34 73464.81 23 300",
+    "PL_1 790529 32 16 | 4257.854 73457.318 23 120",
+    "TL_1 790529 34 35 33 | 4254.012 73460.909 25 210",
+    "PL_2 790529 32 16 | 4245.967 73459.777 23 300",
+    "PL_3 790529 32 16 | 4249.769 73452.525 23 120",
+    "TL_2 790529 51 49 50 | 4248.392 73458.641 25 300",
+    "PL_4 790529 16 48 32 | 4250.476 73451.075 23 30",
+    "PL_5 790529 16 48 32 | 4256.129 73456.338 23 210",
     
-    # Intersection 2
-    "TL_3 786434 17 18 19 33 34 35 | 3780.5 73700.7 25 30",
-    "PL_6 786434 16 32 | 3782.06 73697.5 23 120",
-    "PL_7 786434 16 32 | 3777.07 73707.1 23 300",
-    "TL_4 786434 17 18 19 33 34 35 | 3794.0 73711.2 25 210",
-    "PL_8 786434 16 32 | 3793.3 73714.9 23 300",
-    "PL_9 786434 16 32 | 3798.2 73705.9 23 120",
-    "TL_5 786434 49 50 51 | 3790.6 73702.6 25 120",
-    "PL_10 786434 48 | 3775 73709.5 23 30",
-    "PL_11 786434 48 | 3786.18 73716.1 23 210",
+    # Intersection B
+    "TL_3 798721 34 35 33 | 4504.633 72934.039 25 120",
+    "PL_6 798721 32 48 | 4503.107 72943.152 23 210",
+    "PL_7 798721 32 48 | 4496.474 72939.119 23 30",
+    "TL_4 798721 51 49 50 | 4498.484 72941.316 25 300",
+    "PL_8 798721 32 48 | 4507.343 72934.232 23 210",
+    "PL_9 798721 32 48 | 4499.093 72930.882 23 30",
+    "TL_5 798721 17 18 19 | 4500.046 72935.531 25 30",
+    "PL_10 798721 16 48 32 | 4504.997 72942.688 23 300",
+    "PL_11 798721 16 48 32 | 4508.349 72935.441 23 120",
     
-    # Intersection 3
-    "TL_6 786433 17 18 19 33 34 35 | 3720.5 73668.7 25 30",
-    "PL_12 786433 16 32 | 3722.06 73665.5 23 120",
-    "PL_13 786433 16 32 | 3717.07 73675.1 23 300",
-    "TL_7 786433 17 18 19 33 34 35 | 3734.0 73679.2 25 210",
-    "PL_14 786433 16 32 | 3733.3 73682.9 23 300",
-    "PL_15 786433 16 32 | 3738.2 73673.9 23 120",
-    "TL_8 786433 49 50 51 | 3730.6 73670.6 25 120",
-    "PL_16 786433 48 | 3715 73677.5 23 30",
-    "PL_17 786433 48 | 3726.18 73684.1 23 210",
+    # Intersection D
+    "TL_6 2 18 19 20 0 0 0 0 0 | 5213.449 73126.844 25 350",
+    "TL_7 2 18 19 20 0 0 0 0 0 | 5179.925 73140.073 25 170",
+    "TL_8 2 35 36 33 0 0 0 0 0 | 5186.233 73122.367 25 80",
+    "TL_9 2 35 36 33 0 0 0 0 0 | 5202.519 73151.145 25 260",
 ]
 
 # The target RSU and OBU for real time graphs and offline heatmaps
@@ -204,12 +198,12 @@ VISUALLY_DM_PARAMETERS = [
     {'rssi_worst': RSSI_WORST},
     {'packet_loss_best': PACKET_LOSS_BEST},
     {'packet_loss_worst': PACKET_LOSS_WORST},
-    {'rsu_detection_topic': RSU_DETECTION_TOPICS},
-    {'obu_detection_topic': OBU_DETECTION_TOPICS},
-    {'rsu_freespace_topic': RSU_FREESPACE_TOPICS},
-    {'obu_freespace_topic': OBU_FREESPACE_TOPICS},
-    {'rsu_signal_topic': RSU_SIGNAL_TOPICS},
-    {'obu_signal_topic': OBU_SIGNAL_TOPICS},
+    {'rsu_detection_topics': RSU_DETECTION_TOPICS},
+    {'obu_detection_topics': OBU_DETECTION_TOPICS},
+    {'rsu_freespace_topics': RSU_FREESPACE_TOPICS},
+    {'obu_freespace_topics': OBU_FREESPACE_TOPICS},
+    {'rsu_signal_topics': RSU_SIGNAL_TOPICS},
+    {'obu_signal_topics': OBU_SIGNAL_TOPICS},
     {'obu_topics': OBU_TOPICS},
     {'target_rsu_id': TARGET_RSU_ID},
     {'target_obu_id': TARGET_OBU_ID},
@@ -224,6 +218,9 @@ VISUALLY_DM_PARAMETERS = [
     {'cloud_list': CLOUD_LIST},
     {'signal_list': SIGNAL_LIST},
     {'rsu_obu_con_dist': RSU_OBU_CON_DIST},
+    {'off_hm_path': OFF_HM_PATH},
+    {'off_hm_attr': OFF_HM_ATTR},
+    {'on_hm': ON_HM},
 ]
 
 VISPLOT_PARAMETERS = [

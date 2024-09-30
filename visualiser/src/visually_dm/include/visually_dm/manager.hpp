@@ -118,14 +118,11 @@ public:
         , bool add_online_heatmap);
 
     /**
-     * @brief Adds RSUs to the visualiser and subscribes to the relevant topics to get updates
+     * @brief Adds RSUs to the visualiser
      * @param rsu_list The list of the RSU specifications
-     * @param rsu_topics The list of the RSU TF topics
-     * @note The data in rsu_list must correspond that of rsu_topics one-by-one
     */
     void addRsuList(
-        const std::vector<std::string>& rsu_list
-        , const std::vector<std::string>& rsu_topics);
+        const std::vector<std::string>& rsu_list);
 
     /**
      * @brief Adds OBUs to the visualiser and subscribes to the relevant topics to get updates
@@ -231,7 +228,10 @@ private:
      * @param msg
     */
     void networkMessageCallback(
-        const dm_network_info_msgs::msg::NetworkStatus& msg);
+        const dm_network_info_msgs::msg::NetworkStatus& msg,
+        const std::string& rsu_id,
+        const std::string& obu_id,
+        const std::string& protocol);
 
     /**
      * @brief Gets the list of the connected links

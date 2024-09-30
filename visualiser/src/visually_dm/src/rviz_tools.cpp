@@ -336,9 +336,6 @@ void RvizTools::addLink(
 
         links_.emplace(id, new_link);
     }
-    if (links_.find(id) == links_.end()) {
-        
-    }
 }
 
 void RvizTools::updateLinkSpec(
@@ -426,11 +423,11 @@ void RvizTools::updateIndirectLinkSpec(
 void RvizTools::addAllLinks(
     const std::string& obu_id,
     const std::string& rsu_id,
-    const std::string& protocol
+    const std::string& protocol,
     double max_dist)
 {
     addLink(rsu_id + obu_id, protocol, max_dist);
-    for (const auto& cloud : clouds)
+    for (const auto& cloud : clouds_)
         addIndirectLink(rsu_id, cloud.first, obu_id, protocol);
 }
 
@@ -450,7 +447,7 @@ void RvizTools::updateAllLinkSpecs(
         line_thickness,
         opacity,
         packet_dist);
-    for (const auto& cloud : clouds)
+    for (const auto& cloud : clouds_)
         updateIndirectLinkSpec(
             rsu_id + cloud.first + obu_id,
             protocol,
@@ -460,19 +457,27 @@ void RvizTools::updateAllLinkSpecs(
             packet_dist);
 }
 
-void RvizTools::activateLinks(
-    std::vector<std::string> connected_link_ids)
+void RvizTools::activateDirectLinks(
+    const std::string& obu_id,
+    const std::string& rsu_id,
+    const std::string& protocol)
 {
-    for (const auto& connected_link_id : connected_link_ids) {
-        for (auto& link : links_)
-            if (link.first == connected_link_id)
-                link.second.activate();
+    try {
+        links_.at(rsu_id + obu_id).activate(protocol);
+    }
+    catch (std::out_of_range&) { }
+}
 
-        for (auto& link_pair : link_pairs_)
-            if (link_pair.first == connected_link_id) {
-                link_pair.second.rsu2cloud.activate();
-                link_pair.second.cloud2vehicle.activate();
-            }
+void RvizTools::activateIndirectLinks(
+    const std::string& obu_id,
+    const std::string& rsu_id,
+    const std::string& protocol)
+{
+    for (auto& cloud : clouds_) {
+        link_pairs_.at(rsu_id + cloud.first + obu_id)
+            .rsu2cloud.activate(protocol);
+        link_pairs_.at(rsu_id + cloud.first + obu_id)
+            .cloud2vehicle.activate(protocol);
     }
 }
 
@@ -599,10 +604,10 @@ void RvizTools::addToOnlineHeatmap(
     , double value)
 {
     try {
-        auto pose{ obus_[obu_id].getPose() };
-        double x{ pose.translation.x };
-        double y{ pose.translation.y };
-        double z{ pose.translation.z };
+        auto pose{ obus_.at(obu_id).getPose() };
+        double x{ pose.position.x };
+        double y{ pose.position.y };
+        double z{ pose.position.z };
         online_heatmaps_.at(id).addNewOnlineHeatmapPoint(
             x
             , y
@@ -636,10 +641,15 @@ void RvizTools::display()
     for (auto& freespace : freespaces_)
         freespace.second.publishUpdates();
 
-    for (auto& link : links_)
+    for (auto& link : links_) {
+        RCLCPP_INFO(node_->get_logger(), "Direct Link:");
+        RCLCPP_INFO(node_->get_logger(), link.first.c_str());
         link.second.publishUpdates();
+    }
     
     for (auto& link_pair : link_pairs_) {
+        RCLCPP_INFO(node_->get_logger(), "Indirect Link:");
+        RCLCPP_INFO(node_->get_logger(), link_pair.first.c_str());
         link_pair.second.rsu2cloud.publishUpdates();
         link_pair.second.cloud2vehicle.publishUpdates();
     }

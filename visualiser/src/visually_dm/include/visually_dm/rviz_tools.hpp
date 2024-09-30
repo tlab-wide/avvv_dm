@@ -296,7 +296,7 @@ public:
     void addAllLinks(
         const std::string& obu_id,
         const std::string& rsu_id,
-        const std::string& protocol
+        const std::string& protocol,
         double max_dist);
 
     /**
@@ -320,11 +320,24 @@ public:
         double packet_dist);
 
     /**
-     * @brief Activates links as having a flow of data
-     * @param connected_link_ids The IDs of links that need to be activated
+     * @brief Activates direct links as having a flow of data
+     * @param obu_id
+     * @param rsu_id
     */
-    void activateLinks(
-        std::vector<std::string> connected_link_ids);
+    void activateDirectLinks(
+        const std::string& obu_id,
+        const std::string& rsu_id,
+        const std::string& protocol);
+
+    /**
+     * @brief Activates indirect links as having a flow of data
+     * @param obu_id
+     * @param rsu_id
+    */
+    void activateIndirectLinks(
+        const std::string& obu_id,
+        const std::string& rsu_id,
+        const std::string& protocol);
 
     /**
      * @brief Adds a new detection

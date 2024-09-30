@@ -88,13 +88,18 @@ green,
 */
 struct LinkInformation
 {
-    rviz_visual_tools::Colors colour_;
-    double line_thickness_;
-    double opacity_;
-    double packet_size_;
-    double packet_dist_;
-    visualization_msgs::msg::Marker spheres_;
-}
+    rviz_visual_tools::Colors colour;
+
+    double line_thickness;
+    double opacity;
+    double packet_dist;
+
+    visualization_msgs::msg::Marker line;
+    visualization_msgs::msg::Marker spheres;
+
+    // Keeps track of the last active time
+    std::chrono::time_point<std::chrono::steady_clock> last_active_time;
+};
 
 
 /**
@@ -560,7 +565,7 @@ public:
     /**
      * @brief Activates links as having a flow of data
     */
-    void activate();
+    void activate(const std::string& protocol);
 
     /**
      * @brief Publishes the updates to RViz
@@ -573,7 +578,10 @@ private:
      * Packets move between endpoints
      * @returns The new poses of the many packets between the two endpoints
      */
-    std::vector<geometry_msgs::msg::Point> getPacketPoints();
+    std::vector<geometry_msgs::msg::Point> getPacketPoints(
+        double packet_dist);
+
+    double packet_size_;
 
     std::map<std::string, LinkInformation> link_infos_;
 
@@ -594,10 +602,8 @@ private:
     // The maximum distance up to which the rsu-obu pair remain connected
     double max_dist_;
 
-    // Keeps track of the last active time
-    std::chrono::time_point<std::chrono::steady_clock> last_active_time_;
-
-    visualization_msgs::msg::Marker line_;
+    // Need to keep base_frame for later use
+    std::string frame_id_;
 };
 
 /**

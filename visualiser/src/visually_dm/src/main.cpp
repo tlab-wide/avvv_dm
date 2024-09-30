@@ -182,26 +182,26 @@ int main(int argc, char** argv)
 				obu_detected_colour,
 				on_hm);
 
-		for (auto& rsu_freespace_topic : rsu_freespaces_topics)
+		for (auto& rsu_freespace_topic : rsu_freespace_topics)
 			visualiser.addRsuFreespace(
 				rsu_freespace_topic,
 				rsu_freespace_colour,
 				freespace_width);
 
-		for (auto& obu_freespace_topic : obu_freespaces_topics)
-			visualiser.addRsuFreespace(
+		for (auto& obu_freespace_topic : obu_freespace_topics)
+			visualiser.addObuFreespace(
 				obu_freespace_topic,
 				obu_freespace_colour,
 				freespace_width,
 				on_hm);
 
 		
-		visualiser.addSignalList(
+		visualiser.addObuSignalList(
 			signal_list,
 			obu_signal_topics,
 			on_hm);
 
-		visualiser.addRsuList(rsu_list, rsu_topics);
+		visualiser.addRsuList(rsu_list);
 
 		visualiser.addObuList(obu_list, obu_topics);
 
@@ -223,6 +223,7 @@ int main(int argc, char** argv)
 		rclcpp::spin(node);
 	}
 	catch (std::runtime_error& e) {
+		RCLCPP_ERROR(node->get_logger(), "The following error occurred");
 		RCLCPP_ERROR(node->get_logger(), e.what());
 	}
 
