@@ -133,9 +133,7 @@ OBU_LIST = [
 ]
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
-CLOUD_LIST = [
-    "CLD_0 4600 73200 80 330",
-]
+CLOUD = "CLD_0 4600 73200 80 330"
 
 # In format "TL_ID/PL_ID CRP_ID Beacon_ID_set | easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 SIGNAL_LIST = [
@@ -215,7 +213,7 @@ VISUALLY_DM_PARAMETERS = [
     {'link_topics': LINK_TOPICS},
     {'rsu_list': RSU_LIST},
     {'obu_list': OBU_LIST},
-    {'cloud_list': CLOUD_LIST},
+    {'cloud': CLOUD},
     {'signal_list': SIGNAL_LIST},
     {'rsu_obu_con_dist': RSU_OBU_CON_DIST},
     {'off_hm_path': OFF_HM_PATH},

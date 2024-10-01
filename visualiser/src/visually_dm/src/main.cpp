@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 	node->declare_parameter<std::vector<std::string>>("link_topics");
 	node->declare_parameter<std::vector<std::string>>("rsu_list");
 	node->declare_parameter<std::vector<std::string>>("obu_list");
-	node->declare_parameter<std::vector<std::string>>("cloud_list");
+	node->declare_parameter<std::string>("cloud");
 	node->declare_parameter<std::vector<std::string>>("signal_list");
 	node->declare_parameter<double>("rsu_obu_con_dist");
 	node->declare_parameter<std::string>("off_hm_path");
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 
 	std::vector<std::string> obu_list{ node->get_parameter("obu_list").as_string_array() };
 
-	std::vector<std::string> cloud_list{ node->get_parameter("cloud_list").as_string_array() };
+	std::string cloud{ node->get_parameter("cloud").as_string() };
 	
 	std::vector<std::string> signal_list{ node->get_parameter("signal_list").as_string_array() };
 
@@ -201,13 +201,13 @@ int main(int argc, char** argv)
 			obu_signal_topics,
 			on_hm);
 		
-		visualiser.addLinkList(link_topics, cloud_list);
+		visualiser.addLinkList(link_topics, cloud);
 
 		visualiser.addRsuList(rsu_list);
 
 		visualiser.addObuList(obu_list, obu_topics);
 
-		visualiser.addCloudList(cloud_list);
+		visualiser.addCloud(cloud);
 
 		if (off_hm_path.length())
 			visualiser.addOfflineHeatmap(

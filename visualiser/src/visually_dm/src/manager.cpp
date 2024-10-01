@@ -238,52 +238,47 @@ void Visualiser::addObuList(
     }
 }
 
-void Visualiser::addCloudList(const std::vector<std::string>& cloud_list)
+void Visualiser::addCloud(const std::string& cloud)
 {
     std::string cloud_id;
-    for (const auto& cloud_conf : cloud_list) {
-        std::istringstream iss(cloud_conf);
-        iss >> cloud_id;
-        art_.addCloud(cloud_id, cloud_colour);
+    std::istringstream iss(cloud);
+    iss >> cloud_id;
+    art_.addCloud(cloud_id, cloud_colour);
 
-        double position[3]{};
-        double orientation[3]{};
-        
-        iss >> position[0];
-        iss >> position[1];
-        iss >> position[2];
-        iss >> orientation[2];
+    double position[3]{};
+    double orientation[3]{};
+    
+    iss >> position[0];
+    iss >> position[1];
+    iss >> position[2];
+    iss >> orientation[2];
 
-        orientation[2] = transforms::degree2Radian(orientation[2]);
-        geometry_msgs::msg::Pose initial_pose;
-        transforms::getGeometryPose(position, orientation, initial_pose);
+    orientation[2] = transforms::degree2Radian(orientation[2]);
+    geometry_msgs::msg::Pose initial_pose;
+    transforms::getGeometryPose(position, orientation, initial_pose);
 
-        art_.updateCloudPose(cloud_id, initial_pose);
-    }
+    art_.updateCloudPose(cloud_id, initial_pose);
 }
 
 void Visualiser::addLinkList(
     const std::vector<std::string>& link_topics,
-        const std::vector<std::string>& cloud_list)
+        const std::string& cloud_conf)
 {
     std::smatch match_results;
 
-    std::vector<std::string> cloud_ids;
-    for (const auto& cloud_conf : cloud_list) {
-        std::string cloud_id;
-        std::istringstream iss(cloud_conf);
-        iss >> cloud_id;
-        cloud_ids.push_back(cloud_id);
-    }
+    // Withdraw cloud ID
+    std::string cloud_id;
+    std::istringstream iss(cloud_conf);
+    iss >> cloud_id;
 
     for (const auto& link_topic : link_topics) {
         std::regex_search(link_topic, match_results, link_rgx_);
-        art_.addAllLinks(
-            match_results[1].str(), // OBU ID
+        art_.addLink(
             match_results[2].str(), // RSU ID
+            match_results[1].str(), // OBU ID
             match_results[3].str(), // Protocol name (object, freespace or signal)
             rsu_obu_con_dist_,
-            cloud_ids);
+            cloud_id);
         
         network_status_subscriptions_.push_back(
             node_->create_subscription<dm_network_info_msgs::msg::NetworkStatus>(
@@ -293,8 +288,8 @@ void Visualiser::addLinkList(
                         const dm_network_info_msgs::msg::NetworkStatus& msg) -> void {
                     networkMessageCallback(
                         msg,
-                        match_results[1].str(), // OBU ID
                         match_results[2].str(), // RSU ID
+                        match_results[1].str(), // OBU ID
                         match_results[3].str()); // Protocol name (object, freespace or signal)
                 }
             )
@@ -485,7 +480,7 @@ void Visualiser::networkMessageCallback(
     const std::string& obu_id,
     const std::string& protocol)
 {
-    art_.updateAllLinkSpecs(
+    art_.updateLinkSpec(
         rsu_id,
         obu_id,
         protocol,
@@ -493,8 +488,7 @@ void Visualiser::networkMessageCallback(
         net_status_repr_.getThickness[link_thickness_](msg),
         net_status_repr_.getOpacity[link_opacity_](msg),
         net_status_repr_.getPacketDensity[link_packet_density_](msg));
-    art_.activateDirectLinks(rsu_id, obu_id, protocol);
-    art_.activateIndirectLinks(rsu_id, obu_id, protocol);
+    art_.activateLink(rsu_id, obu_id, protocol);
 }
 
 void Visualiser::getConnectedLinks(

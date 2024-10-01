@@ -135,22 +135,22 @@ public:
 
     /**
      * @brief Adds cloud servers to the visualiser
-     * @param cloud_list The list of the cloud server specifications
+     * @param cloud The cloud server specifications
     */
-    void addCloudList(const std::vector<std::string>& cloud_list);
+    void addCloud(const std::string& cloud);
 
     /**
      * @brief Adds RSU-OBU or RSU-Cloud-OBU links to the visualiser
      * @param link_list The list of the link specifications containing
-     * @param cloud_list The list of cloud informations for cellular
-     * connections
+     * @param cloud_conf The configurations related to the cloud
+     *  informations for cellular connections
      * the IDs of the entities
      * @note For correct programme behaviour, call this member function
      * before addRsuList, addObuList and addCloudList functions
     */
     void addLinkList(
         const std::vector<std::string>& link_list,
-        const std::vector<std::string>& cloud_list);
+        const std::string& cloud_conf);
 
     /**
      * @brief Adds traffic signals to the visualiser and subscribes to the

@@ -595,22 +595,24 @@ void LightSet::publishUpdates()
 
 
 Link::Link(
-    const std::shared_ptr<rclcpp::Node>& node
-    , const std::string& base_frame
-    , const std::string& id
-    , const double max_dist
-    , int counter_update_rate)
-    : Entity(node, id, base_frame)
-    , packet_size_(0.6)
-    , pale_link_thickness_(0.3)
-    , valid_point_i_(false)
-    , valid_point_o_(false)
-    , counter_(0)
-    , counter_update_rate_(counter_update_rate)
+    const std::string& base_frame,
+    const std::string& base_namespace,
+    double max_dist)
+    : valid_point_1_(false)
+    , valid_point_2_(false)
+    , base_namespace_(base_namespace)
     , max_dist_(max_dist)
-    , frame_id_(base_frame)
+    , counter_(0)
 {
-    rvizer_.setAlpha(1.0);
+    line_.header.frame_id = base_frame;
+    line_.type = line_.LINE_LIST;
+    line_.action = line_.ADD;
+    spheres_.header.frame_id = base_frame;
+    spheres_.type = spheres_.SPHERE_LIST;
+    spheres_.action = spheres_.ADD;
+    spheres_.scale.x = packet_size;
+    spheres_.scale.y = packet_size;
+    spheres_.scale.z = packet_size;
 }
 
 Link::~Link()
@@ -618,41 +620,134 @@ Link::~Link()
 
 }
 
-void Link::addProtocol(const std::string& protocol)
+void Link::updateEndpoint1(
+    const geometry_msgs::msg::Point& point)
 {
-    LinkInformation link_info;
-    link_info.line.header.frame_id = frame_id_;
-    link_info.line.ns = "line_" + protocol;
-    link_info.line.type = link_info.line.LINE_LIST;
-    link_info.line.action = link_info.line.ADD;
-    link_info.line.color.a = 1.0;
-
-    link_info.spheres.header.frame_id = frame_id_;
-    link_info.spheres.ns = "spheres_" + protocol;
-    link_info.spheres.type = link_info.spheres.SPHERE_LIST;
-    link_info.spheres.action = link_info.spheres.ADD;
-    link_info.spheres.scale.x = packet_size_;
-    link_info.spheres.scale.y = packet_size_;
-    link_info.spheres.scale.z = packet_size_;
-    link_infos_.emplace(protocol, link_info);
+    point_1_ = point;
+    valid_point_1_ = true;
 }
 
-void Link::updateEndpoint(
-    const std::string& end_point_id
+void Link::updateEndpoint2(
+    const geometry_msgs::msg::Point& point)
+{
+    point_2_ = point;
+    valid_point_2_ = true;
+}
+
+std::vector<geometry_msgs::msg::Point> Link::getPacketPoints(
+    double packet_dist,
+    int counter_update_rate,
+    int num_steps)
+{
+    const int num_packets = std::max(
+        1,
+        int (transforms::dist(point_1_, point_2_) / packet_dist));
+    
+    const double x_step = (point_2_.x - point_1_.x) / num_packets;
+    const double y_step = (point_2_.y - point_1_.y) / num_packets;
+    const double z_step = (point_2_.z - point_1_.z) / num_packets;
+
+    const double pro = (double) counter_ / num_steps;
+    const double reg = 1 - pro;
+    
+    std::vector<geometry_msgs::msg::Point> packet_points(2 * num_packets);
+    
+    packet_points[0].x = point_1_.x + pro * x_step;
+    packet_points[0].y = point_1_.y + pro * y_step;
+    packet_points[0].z = point_1_.z + pro * z_step;
+
+    packet_points[1].x = point_1_.x + reg * x_step;
+    packet_points[1].y = point_1_.y + reg * y_step;
+    packet_points[1].z = point_1_.z + reg * z_step;
+
+    for (int i{ 2 }; i < 2 * num_packets; ++i) {
+        packet_points[i].x = packet_points[i - 2].x + x_step; 
+        packet_points[i].y = packet_points[i - 2].y + y_step; 
+        packet_points[i].z = packet_points[i - 2].z + z_step;
+    }
+
+    counter_ += counter_update_rate;
+    counter_ %= num_steps;
+
+    return packet_points;
+}
+
+
+LinkSet::LinkSet(
+    const std::shared_ptr<rclcpp::Node>& node
+    , const std::string& base_frame
+    , double max_dist
+    , const std::string& rsu_id
+    , const std::string& obu_id
+    , const std::string& cloud_id
+    , int counter_update_rate)
+    : Entity(node, rsu_id + obu_id, base_frame)
+    , rsu_id_(rsu_id)
+    , obu_id_(obu_id)
+    , cld_id_(cloud_id)
+    , rsu_obu_(Link(base_frame, "rsu_obu_", max_dist))
+    , rsu_cld_(
+        Link(
+            base_frame,
+            "rsu_cld_",
+            std::numeric_limits<double>::max()))
+    , cld_obu_(
+        Link(
+            base_frame,
+            "cld_obu_",
+            std::numeric_limits<double>::max()))
+    , counter_update_rate_(counter_update_rate)
+    , frame_id_(base_frame)
+{
+
+}
+
+LinkSet::~LinkSet()
+{
+
+}
+
+/**
+ * @todo fix this about line and spheres
+*/
+void LinkSet::addProtocol(const std::string& protocol)
+{
+    link_infos_.emplace(protocol, LinkInformation{});
+}
+
+void LinkSet::updateRsuPoint(
+    const std::string& rsu_id,
+    const geometry_msgs::msg::Point& point)
+{
+    if (rsu_id == rsu_id_) {
+        rsu_obu_.updateEndpoint1(point);
+        if (cld_id_ != "")
+            rsu_cld_.updateEndpoint1(point);
+    }
+}
+
+void LinkSet::updateObuPoint(
+    const std::string& obu_id
     , const geometry_msgs::msg::Point& point)
 {
-    auto found{ id_.find(end_point_id) };
-    if (found == 0) {
-        point_i_ = point;
-        valid_point_i_ = true;
-    }
-    else if (found != id_.npos) {
-        point_o_ = point;
-        valid_point_o_ = true;
+    if (obu_id == obu_id_) {
+        rsu_obu_.updateEndpoint2(point);
+        if (cld_id_ != "")
+            cld_obu_.updateEndpoint2(point);
     }
 }
 
-void Link::updateLinkSpecs(
+void LinkSet::updateCloudPoint(
+    const std::string& cloud_id
+    , const geometry_msgs::msg::Point& point)
+{
+    if (cloud_id == cld_id_) {
+        rsu_cld_.updateEndpoint2(point);
+        cld_obu_.updateEndpoint1(point);
+    }
+}
+
+void LinkSet::updateLinkSpecs(
     const std::string& protocol,
     rviz_visual_tools::Colors colour,
     double thickness,
@@ -665,7 +760,7 @@ void Link::updateLinkSpecs(
     link_infos_.at(protocol).packet_dist = packet_dist;
 }
 
-void Link::activate(const std::string& protocol)
+void LinkSet::activate(const std::string& protocol)
 {
     try {
         link_infos_.at(protocol).last_active_time = 
@@ -674,96 +769,63 @@ void Link::activate(const std::string& protocol)
     catch (std::out_of_range&) { }
 }
 
-void Link::publishUpdates(const std::shared_ptr<rclcpp::Node>& node)
+void LinkSet::publishUpdates()
+{
+    publishLinkUpdate(rsu_obu_);
+    if (cld_id_ != "") {
+        publishLinkUpdate(rsu_cld_);
+        publishLinkUpdate(cld_obu_);
+    }
+    rvizer_.trigger();
+}
+
+void LinkSet::publishLinkUpdate(Link& link)
 {
     static bool valid_points;
     static bool active;
     static bool within_max_dist;
-    valid_points = valid_point_i_ and valid_point_o_;
-    within_max_dist = transforms::dist(point_i_, point_o_) <= max_dist_;
-
-    RCLCPP_INFO(node->get_logger(), "link publish: %s", id_.c_str());
-    RCLCPP_INFO(node->get_logger(), "valid points: %d", valid_points);
-    RCLCPP_INFO(node->get_logger(), "valid points: %d", within_max_dist);
+    valid_points = link.valid_point_1_ and link.valid_point_2_;
+    within_max_dist = transforms::dist(link.point_1_, link.point_2_) <= link.max_dist_;
 
     if (valid_points) {
-        for (auto& link_info : link_infos_) {
+        link.line_.points.clear();
+        link.line_.points.push_back(link.point_1_);
+        link.line_.points.push_back(link.point_2_);
+        for (const auto& link_info : link_infos_) {
             active = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - link_info.second.last_active_time)
                 .count() < idle_time_;
+            link.line_.ns = link.base_namespace_ + "line_" + link_info.first;
+            link.spheres_.ns = link.base_namespace_ + "spheres_" + link_info.first;
             if (active and within_max_dist) {
-                link_info.second.line.points.clear();
-                link_info.second.line.points.push_back(point_i_);
-                link_info.second.line.points.push_back(point_o_);
-                link_info.second.line.color = rvizer_.getColor(link_info.second.colour);
-                link_info.second.line.scale.x = link_info.second.line_thickness;
-                link_info.second.line.scale.y = link_info.second.line_thickness;
-                link_info.second.line.scale.z = link_info.second.line_thickness;
-                rvizer_.publishMarker(link_info.second.line);
+                link.line_.color = rvizer_.getColor(link_info.second.colour);
+                link.line_.color.a = link_info.second.opacity;
+                link.line_.scale.x =
+                    link.line_.scale.y =
+                    link.line_.scale.z =
+                    link_info.second.line_thickness;
 
-                link_info.second.spheres.points = getPacketPoints(link_info.second.packet_dist);
-                link_info.second.spheres.color = rvizer_.getColor(link_info.second.colour);
-                rvizer_.publishMarker(link_info.second.spheres);
-                RCLCPP_INFO(node->get_logger(), "valid, active, dist: %s", id_.c_str());
+                link.spheres_.points = link.getPacketPoints(
+                    link_info.second.packet_dist,
+                    counter_update_rate_,
+                    num_steps_);
+                link.spheres_.color = rvizer_.getColor(link_info.second.colour);
             }
             else {
-                rvizer_.setAlpha(link_info.second.opacity);
-                
-                link_info.second.spheres.points.clear();
-                rvizer_.publishMarker(link_info.second.spheres);
-                link_info.second.line.points.clear();
-                link_info.second.line.points.push_back(point_i_);
-                link_info.second.line.points.push_back(point_o_);
-                link_info.second.line.color = rvizer_.getColor(rviz_visual_tools::WHITE);
-                link_info.second.line.color.a = 1.0;
-                RCLCPP_INFO(node->get_logger(), "protocol: %s, r: %f, g: %f, b: %f, a: %f", link_info.first.c_str(), link_info.second.line.color.r, link_info.second.line.color.g, link_info.second.line.color.b, link_info.second.line.color.a);
+                link.line_.color = rvizer_.getColor(rviz_visual_tools::WHITE);
+                link.line_.color.a = pale_link_opacity;
+                link.line_.scale.x =
+                    link.line_.scale.y =
+                    link.line_.scale.z = pale_link_thickness;
 
-                link_info.second.line.scale.x = pale_link_thickness_;
-                link_info.second.line.scale.y = pale_link_thickness_;
-                link_info.second.line.scale.z = pale_link_thickness_;
-                rvizer_.publishMarker(link_info.second.line);
-                RCLCPP_INFO(node->get_logger(), "valid: %s", id_.c_str());
+                link.spheres_.points.clear();
             }
+            rvizer_.publishMarker(link.line_);
+            rvizer_.publishMarker(link.spheres_);
         }
-        rvizer_.trigger();
     }    
 }
 
-std::vector<geometry_msgs::msg::Point> Link::getPacketPoints(
-    double packet_dist)
-{
-    const int num_packets = std::max(
-        1,
-        int (transforms::dist(point_i_, point_o_) / packet_dist));
-    
-    const double x_step = (point_o_.x - point_i_.x) / num_packets;
-    const double y_step = (point_o_.y - point_i_.y) / num_packets;
-    const double z_step = (point_o_.z - point_i_.z) / num_packets;
-
-    const double pro = (double) counter_ / num_steps_;
-    const double reg = 1 - pro;
-    
-    std::vector<geometry_msgs::msg::Point> packet_points(2 * num_packets);
-    
-    packet_points[0].x = point_i_.x + pro * x_step;
-    packet_points[0].y = point_i_.y + pro * y_step;
-    packet_points[0].z = point_i_.z + pro * z_step;
-
-    packet_points[1].x = point_i_.x + reg * x_step;
-    packet_points[1].y = point_i_.y + reg * y_step;
-    packet_points[1].z = point_i_.z + reg * z_step;
-
-    for (int i{ 2 }; i < 2 * num_packets; ++i) {
-        packet_points[i].x = packet_points[i - 2].x + x_step; 
-        packet_points[i].y = packet_points[i - 2].y + y_step; 
-        packet_points[i].z = packet_points[i - 2].z + z_step;
-    }
-
-    counter_ += counter_update_rate_;
-    counter_ %= num_steps_;
-
-    return packet_points;
-}
 
 BoundingBox::BoundingBox(
     const double position[3]

@@ -46,6 +46,11 @@ constexpr std::size_t echo_line_points{ 100 };
 // The max radius of the echo circle
 constexpr int max_echo_line_radius{ 30 };
 
+// General link characteristics
+constexpr double packet_size{ 0.6 };
+constexpr double pale_link_thickness{ 0.3 };
+constexpr double pale_link_opacity{ 0.7 };
+    
 
 /**
  * @brief Distinguishes the types of meshes
@@ -93,9 +98,6 @@ struct LinkInformation
     double line_thickness;
     double opacity;
     double packet_dist;
-
-    visualization_msgs::msg::Marker line;
-    visualization_msgs::msg::Marker spheres;
 
     // Keeps track of the last active time
     std::chrono::time_point<std::chrono::steady_clock> last_active_time;
@@ -510,27 +512,102 @@ private:
 /**
  * @brief Represents a link (combination of a connection and its packet transmission current)
  */
-class Link : public Entity {
+class Link {
 public:
     /**
      * @brief Constructor
-     * @param node A ROS node to use to initialise publishers
      * @param base_frame The reference frame used for visualisations, usually "/world" or "/odom"
-     * @param id The ID of the link
+     * @param base_namespace The ID of the link
      * @param max_dist The maximum distance the link should stay connected
-     * @param counter_update_rate The rate at which packets move on the link
+     * @param packet_size
      */
     Link(
-        const std::shared_ptr<rclcpp::Node>& node
-        , const std::string& base_frame
-        , const std::string& id
-        , const double max_dist
-        , int counter_update_rate = 1);
+        const std::string& base_frame,
+        const std::string& base_namespace,
+        double max_dist);
 
     /**
      * @brief Deconstructor
      */
     ~Link();
+    
+    /**
+     * @brief Update the position of the first end point
+     * @param point The new position of the end point
+    */
+    void updateEndpoint1(
+        const geometry_msgs::msg::Point& point);
+
+    /**
+     * @brief Update the position of the second end point
+     * @param point The new position of the end point
+    */
+    void updateEndpoint2(
+        const geometry_msgs::msg::Point& point);
+
+private:
+    // Give the LinkSet class direct access to the member
+    // variables and functions of this class
+    friend class LinkSet;
+    
+    /**
+     * @brief Updates the position of the packets as if in a current. 
+     * Packets move between endpoints
+     * @returns The new poses of the many packets between the two endpoints
+     */
+    std::vector<geometry_msgs::msg::Point> getPacketPoints(
+        double packet_dist,
+        int counter_update_rate,
+        int num_steps);
+
+    // The position of the two ends
+    geometry_msgs::msg::Point point_1_;
+    geometry_msgs::msg::Point point_2_;
+    bool valid_point_1_;
+    bool valid_point_2_;
+    
+    std::string base_namespace_;
+    
+    // The maximum distance up to which the rsu-obu pair remain connected
+    double max_dist_;
+
+    // Counter for packet movement simulation
+    // changes from 0 to 'num_steps_ - 1' to simulate the packets displacement
+    int counter_;
+
+    visualization_msgs::msg::Marker line_;
+    visualization_msgs::msg::Marker spheres_;
+};
+
+
+/**
+ * @brief Represents a link (combination of a connection and its packet transmission current)
+ */
+class LinkSet : public Entity {
+public:
+    /**
+     * @brief Constructor
+     * @param node A ROS node to use to initialise publishers
+     * @param base_frame The reference frame used for visualisations, usually "/world" or "/odom"
+     * @param max_dist The maximum possible connection range (RSU-OBU)
+     * @param rsu_id The RSU ID involved in the link
+     * @param obu_id The OBU ID involved in the link
+     * @param cloud_id The Cloud ID involved in the link
+     * @param counter_update_rate The rate at which packets move on the link
+     */
+    LinkSet(
+        const std::shared_ptr<rclcpp::Node>& node
+        , const std::string& base_frame
+        , double max_dist
+        , const std::string& rsu_id
+        , const std::string& obu_id
+        , const std::string& cloud_id = ""
+        , int counter_update_rate = 1);
+
+    /**
+     * @brief Deconstructor
+     */
+    ~LinkSet();
     
     /**
      * @brief Update the position of the specified end point
@@ -539,12 +616,30 @@ public:
     void addProtocol(const std::string& protocol);
 
     /**
-     * @brief Update the position of the specified end point
-     * @param end_point_id The ID of the entity this link meets at any end
+     * @brief Update the position of the RSU
+     * @param rsu_id The ID of the RSU
      * @param point The new position of the end point
     */
-    void updateEndpoint(
-        const std::string& end_point_id
+    void updateRsuPoint(
+        const std::string& rsu_id,
+        const geometry_msgs::msg::Point& point);
+
+    /**
+     * @brief Update the position of the OBU
+     * @param obu_id The ID of the OBU
+     * @param point The new position of the end point
+    */
+    void updateObuPoint(
+        const std::string& obu_id
+        , const geometry_msgs::msg::Point& point);
+
+    /**
+     * @brief Update the position of the Cloud
+     * @param cloud_id The ID of the Cloud
+     * @param point The new position of the end point
+    */
+    void updateCloudPoint(
+        const std::string& cloud_id
         , const geometry_msgs::msg::Point& point);
 
     /**
@@ -570,51 +665,32 @@ public:
     /**
      * @brief Publishes the updates to RViz
     */
-    void publishUpdates(const std::shared_ptr<rclcpp::Node>& node);
+    void publishUpdates();
 
 private:
     /**
-     * @brief Updates the position of the packets as if in a current. 
-     * Packets move between endpoints
-     * @returns The new poses of the many packets between the two endpoints
-     */
-    std::vector<geometry_msgs::msg::Point> getPacketPoints(
-        double packet_dist);
-
-    double packet_size_;
-    double pale_link_thickness_;
+     * @brief Publishes the updates of a specific link to RViz
+    */
+    void publishLinkUpdate(Link& link);
 
     std::map<std::string, LinkInformation> link_infos_;
 
-    // The position of the two ends
-    geometry_msgs::msg::Point point_i_;
-    geometry_msgs::msg::Point point_o_;
-    bool valid_point_i_;
-    bool valid_point_o_;
+    std::string rsu_id_;
+    std::string obu_id_;
+    std::string cld_id_;
+
+    Link rsu_obu_; 
+    Link rsu_cld_; 
+    Link cld_obu_; 
 
     // Used in shifting the packets;
     // the more the num_steps_ the smoother the packets motions 
     // (though depends on 'counter_update_rate' too)
     const int num_steps_{ 128 };
-    // changes from 0 to 'num_steps_ - 1' to simulate the packets displacement
-    int counter_;
     int counter_update_rate_;
     
-    // The maximum distance up to which the rsu-obu pair remain connected
-    double max_dist_;
-
     // Need to keep base_frame for later use
     std::string frame_id_;
-};
-
-/**
- * @brief Represents an indirect connection where there is one connection between
- * the RSU and the cloud, and another between the cloud and the vehicle
- */
-struct LinkPair
-{
-Link rsu2cloud;
-Link cloud2vehicle;
 };
 
 

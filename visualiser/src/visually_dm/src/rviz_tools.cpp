@@ -78,7 +78,7 @@ void RvizTools::updateVehiclePose(
     try {
         auto& vehicle{ obus_.at(id) };
         vehicle.setPose(pose);
-        updateLinkEndpoints(id, vehicle.getReceiverPoint());
+        updateLinkObuPoints(id, vehicle.getReceiverPoint());
         int_server_.setPose(id, pose);
         
     }
@@ -148,7 +148,7 @@ void RvizTools::updateRsuPose(
     try {
         auto& rsu{ rsus_.at(id) };
         rsu.setPose(pose);
-        updateLinkEndpoints(id, rsu.getReceiverPoint());
+        updateLinkRsuPoints(id, rsu.getReceiverPoint());
         int_server_.setPose(id, pose);
     }
     catch (std::out_of_range&) {
@@ -205,7 +205,7 @@ void RvizTools::updateCloudPose(
     try {
         auto& cloud{ clouds_.at(id) };
         cloud.setPose(pose);
-        updateLinkEndpoints(id, cloud.getReceiverPoint());
+        updateLinkCloudPoints(id, cloud.getReceiverPoint());
         int_server_.setPose(id, pose);        
     }
     catch (std::out_of_range&) {
@@ -316,30 +316,35 @@ void RvizTools::updateSignal(
 }
 
 void RvizTools::addLink(
-    const std::string& id,
+    const std::string& rsu_id,
+    const std::string& obu_id,
     const std::string& protocol,
-    double max_dist)
+    double max_dist,
+    const std::string& cloud_id)
 {
     try {
-        links_.at(id).addProtocol(protocol);
+        links_.at(rsu_id + obu_id).addProtocol(protocol);
     }
     catch (std::out_of_range&) {
-        entities::Link new_link{
+        entities::LinkSet new_link{
             node_
             , base_frame_
-            , id
             , max_dist
+            , rsu_id
+            , obu_id
+            , cloud_id
             , display_lifetime_.count() / display_lifetime_base_
         };
 
         new_link.addProtocol(protocol);
 
-        links_.emplace(id, new_link);
+        links_.emplace(rsu_id + obu_id, new_link);
     }
 }
 
 void RvizTools::updateLinkSpec(
-    const std::string& id,
+    const std::string& rsu_id,
+    const std::string& obu_id,
     const std::string& protocol,
     rviz_visual_tools::Colors colour,
     double line_thickness,
@@ -347,7 +352,7 @@ void RvizTools::updateLinkSpec(
     double packet_dist)
 {
     try {
-        links_.at(id).updateLinkSpecs(
+        links_.at(rsu_id + obu_id).updateLinkSpecs(
             protocol,
             colour,
             line_thickness,
@@ -357,128 +362,13 @@ void RvizTools::updateLinkSpec(
     catch (std::out_of_range&) { }
 }
 
-void RvizTools::addIndirectLink(
-    const std::string& first_id,
-    const std::string& second_id,
-    const std::string& third_id,
-    const std::string& protocol)
-{
-    try {
-        link_pairs_.at(first_id + second_id + third_id)
-            .rsu2cloud.addProtocol(protocol);
-        
-        link_pairs_.at(first_id + second_id + third_id)
-            .cloud2vehicle.addProtocol(protocol);
-    }
-    catch (std::out_of_range&) {
-        entities::LinkPair new_link_pair{
-            entities::Link(
-                node_
-                , base_frame_
-                , first_id + second_id
-                , std::numeric_limits<double>::max()
-                , display_lifetime_.count() / display_lifetime_base_
-            )
-            , entities::Link(
-                node_
-                , base_frame_
-                , second_id + third_id
-                , std::numeric_limits<double>::max()
-                , display_lifetime_.count() / display_lifetime_base_
-            )
-        };
-
-        new_link_pair.rsu2cloud.addProtocol(protocol);
-        new_link_pair.cloud2vehicle.addProtocol(protocol);
-
-        link_pairs_.emplace(first_id + second_id + third_id, new_link_pair);
-    }
-}
-
-void RvizTools::updateIndirectLinkSpec(
-    const std::string& id,
-    const std::string& protocol,
-    rviz_visual_tools::Colors colour,
-    double line_thickness,
-    double opacity,
-    double packet_dist)
-{
-    try {
-        link_pairs_.at(id).rsu2cloud.updateLinkSpecs(protocol,
-            colour,
-            line_thickness,
-            opacity,
-            packet_dist);
-        link_pairs_.at(id).cloud2vehicle.updateLinkSpecs(protocol,
-            colour,
-            line_thickness,
-            opacity,
-            packet_dist);
-    }
-    catch (std::out_of_range&) { }
-}
-
-void RvizTools::addAllLinks(
-    const std::string& obu_id,
+void RvizTools::activateLink(
     const std::string& rsu_id,
-    const std::string& protocol,
-    double max_dist,
-    const std::vector<std::string>& cloud_ids)
-{
-    addLink(rsu_id + obu_id, protocol, max_dist);
-    for (const auto& cloud : cloud_ids)
-        addIndirectLink(rsu_id, cloud, obu_id, protocol);
-}
-
-void RvizTools::updateAllLinkSpecs(
     const std::string& obu_id,
-    const std::string& rsu_id,
-    const std::string& protocol,
-    rviz_visual_tools::Colors colour,
-    double line_thickness,
-    double opacity,
-    double packet_dist)
-{
-    updateLinkSpec(
-        rsu_id + obu_id,
-        protocol,
-        colour,
-        line_thickness,
-        opacity,
-        packet_dist);
-    for (const auto& cloud : clouds_)
-        updateIndirectLinkSpec(
-            rsu_id + cloud.first + obu_id,
-            protocol,
-            colour,
-            line_thickness,
-            opacity,
-            packet_dist);
-}
-
-void RvizTools::activateDirectLinks(
-    const std::string& obu_id,
-    const std::string& rsu_id,
     const std::string& protocol)
 {
     try {
         links_.at(rsu_id + obu_id).activate(protocol);
-    }
-    catch (std::out_of_range&) { }
-}
-
-void RvizTools::activateIndirectLinks(
-    const std::string& obu_id,
-    const std::string& rsu_id,
-    const std::string& protocol)
-{
-    try {
-        for (auto& cloud : clouds_) {
-            link_pairs_.at(rsu_id + cloud.first + obu_id)
-                .rsu2cloud.activate(protocol);
-            link_pairs_.at(rsu_id + cloud.first + obu_id)
-                .cloud2vehicle.activate(protocol);
-        }
     }
     catch (std::out_of_range&) { }
 }
@@ -643,15 +533,9 @@ void RvizTools::display()
     for (auto& freespace : freespaces_)
         freespace.second.publishUpdates();
 
-    for (auto& link : links_) {
-        link.second.publishUpdates(node_);
-    }
+    for (auto& link : links_)
+        link.second.publishUpdates();
     
-    for (auto& link_pair : link_pairs_) {
-        link_pair.second.rsu2cloud.publishUpdates(node_);
-        link_pair.second.cloud2vehicle.publishUpdates(node_);
-    }
-
     int_server_.applyChanges();
 }
 
@@ -670,14 +554,28 @@ void RvizTools::displayBase()
         offline_heatmap.second.publishUpdates();
 }
 
-void RvizTools::updateLinkEndpoints(const std::string& id, const geometry_msgs::msg::Point& point)
+void RvizTools::updateLinkRsuPoints(
+    const std::string& rsu_id,
+    const geometry_msgs::msg::Point& point)
 {
     for (auto& link : links_)
-        link.second.updateEndpoint(id, point);
-    for (auto& link_pair : link_pairs_) {
-        link_pair.second.rsu2cloud.updateEndpoint(id, point);
-        link_pair.second.cloud2vehicle.updateEndpoint(id, point);
-    }
+        link.second.updateRsuPoint(rsu_id, point);
+}
+
+void RvizTools::updateLinkObuPoints(
+    const std::string& obu_id,
+    const geometry_msgs::msg::Point& point)
+{
+    for (auto& link : links_)
+        link.second.updateObuPoint(obu_id, point);
+}
+
+void RvizTools::updateLinkCloudPoints(
+    const std::string& cloud_id,
+    const geometry_msgs::msg::Point& point)
+{
+    for (auto& link : links_)
+        link.second.updateCloudPoint(cloud_id, point);
 }
 
 } // namespace rviz_tools3

@@ -226,20 +226,26 @@ public:
         , const dm_signal_info_msgs::msg::SignalInfo& signal_info);
 
     /**
-     * @brief Adds a new RSU-vehicle link to the network
-     * @param id
+     * @brief Adds a new link to the network
+     * @param rsu_id
+     * @param obu_id
      * @param protocol Including object_info, freespace_info and signal_info
      * @param max_dist The maximum distance at which the link stays visually connected
+     * @param cloud_ids The list all cloud IDs that will later be added to the
+     * visualiser
      * @note The given ID must be unique, or this will be ignored
      */
     void addLink(
-        const std::string& id,
+        const std::string& rsu_id,
+        const std::string& obu_id,
         const std::string& protocol,
-        double max_dist);
+        double max_dist,
+        const std::string& cloud_id);
 
     /**
      * @brief Updates the features of the link corresponding to the given ID
-     * @param id
+     * @param rsu_id
+     * @param obu_id
      * @param protocol Including object_info, freespace_info and signal_info
      * @param colour
      * @param line_thickness
@@ -248,74 +254,8 @@ public:
      * @note If the given ID is invalid, this will be ignored
      */
     void updateLinkSpec(
-        const std::string& id,
-        const std::string& protocol,
-        rviz_visual_tools::Colors colour,
-        double line_thickness,
-        double opacity,
-        double packet_dist);
-
-    /**
-     * @brief Adds a new RSU-vehicle link to the network
-     * @param first_id
-     * @param second_id
-     * @param third_id
-     */
-    void addIndirectLink(
-        const std::string& first_id,
-        const std::string& second_id,
-        const std::string& third_id,
-        const std::string& protocol);
-
-    /**
-     * @brief Updates the features of the link corresponding to the given ID
-     * @param id
-     * @param protocol
-     * @param colour
-     * @param line_thickness
-     * @param opacity
-     * @param packet_dist
-     * @note If the given ID is invalid, this will be ignored
-     */
-    void updateIndirectLinkSpec(
-        const std::string& id,
-        const std::string& protocol,
-        rviz_visual_tools::Colors colour,
-        double line_thickness,
-        double opacity,
-        double packet_dist);
-
-    /**
-     * @brief Adds a new RSU-vehicle link to the network
-     * @param obu_id
-     * @param rsu_id
-     * @param protocol Including object_info, freespace_info and signal_info
-     * @param max_dist The maximum distance at which the link stays visually connected
-     * @param cloud_ids The list all cloud IDs that will later be added to the
-     * visualiser
-     * @note The given ID must be unique, or this will be ignored
-     */
-    void addAllLinks(
-        const std::string& obu_id,
         const std::string& rsu_id,
-        const std::string& protocol,
-        double max_dist,
-        const std::vector<std::string>& cloud_ids);
-
-    /**
-     * @brief Updates the features of the link corresponding to the given ID
-     * @param obu_id
-     * @param rsu_id
-     * @param protocol Including object_info, freespace_info and signal_info
-     * @param colour
-     * @param line_thickness
-     * @param opacity
-     * @param packet_dist
-     * @note If the given ID is invalid, this will be ignored
-     */
-    void updateAllLinkSpecs(
         const std::string& obu_id,
-        const std::string& rsu_id,
         const std::string& protocol,
         rviz_visual_tools::Colors colour,
         double line_thickness,
@@ -324,22 +264,12 @@ public:
 
     /**
      * @brief Activates direct links as having a flow of data
-     * @param obu_id
      * @param rsu_id
-    */
-    void activateDirectLinks(
-        const std::string& obu_id,
-        const std::string& rsu_id,
-        const std::string& protocol);
-
-    /**
-     * @brief Activates indirect links as having a flow of data
      * @param obu_id
-     * @param rsu_id
     */
-    void activateIndirectLinks(
-        const std::string& obu_id,
+    void activateLink(
         const std::string& rsu_id,
+        const std::string& obu_id,
         const std::string& protocol);
 
     /**
@@ -462,12 +392,33 @@ private:
     void displayBase();
 
     /**
-     * @brief Updates all link endpoints position involving the endpoint specified by the give ID
-     * @param id The ID of the endpoint
+     * @brief Updates all link endpoints position involving the
+     * given RSU
+     * @param rsu_id The ID of the RSU
      * @param point The new position of the endpoint
     */
-    void updateLinkEndpoints(
-        const std::string& id
+    void updateLinkRsuPoints(
+        const std::string& rsu_id
+        , const geometry_msgs::msg::Point& point);
+
+    /**
+     * @brief Updates all link endpoints position involving the
+     * given OBU
+     * @param obu_id The ID of the OBU
+     * @param point The new position of the endpoint
+    */
+    void updateLinkObuPoints(
+        const std::string& obu_id
+        , const geometry_msgs::msg::Point& point);
+
+    /**
+     * @brief Updates all link endpoints position involving the
+     * given Cloud
+     * @param cloud_id The ID of the Cloud
+     * @param point The new position of the endpoint
+    */
+    void updateLinkCloudPoints(
+        const std::string& cloud_id
         , const geometry_msgs::msg::Point& point);
 
     // ROS node to handle ROS specific tasks such as publishing, logging, etc
@@ -483,8 +434,7 @@ private:
     std::map<unsigned int, entities::LightSet> light_sets_;
     std::map<std::string, entities::Detection> detections_;
     std::map<std::string, entities::Freespace> freespaces_;
-    std::map<std::string, entities::Link> links_;
-    std::map<std::string, entities::LinkPair> link_pairs_;
+    std::map<std::string, entities::LinkSet> links_;
 
     std::map<std::string, heatmap::OfflineHeatmap> offline_heatmaps_;
     std::map<std::string, heatmap::OnlineHeatmap> online_heatmaps_;

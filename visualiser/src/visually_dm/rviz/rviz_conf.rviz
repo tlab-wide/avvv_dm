@@ -8,11 +8,6 @@ Panels:
         - /RSU_2=OBU_11/Namespaces1
         - /RSU_3=OBU_11/Namespaces1
         - /RSU_4=OBU_11/Namespaces1
-        - /RSU_1=CLD_01/Namespaces1
-        - /RSU_2=CLD_01/Namespaces1
-        - /RSU_3=CLD_01/Namespaces1
-        - /RSU_4=CLD_01/Namespaces1
-        - /CLD_0=OBU_11/Namespaces1
       Splitter Ratio: 0.5
     Tree Height: 696
   - Class: rviz_common/Selection
@@ -405,12 +400,24 @@ Visualization Manager:
       Enabled: true
       Name: RSU_1=OBU_1
       Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
+        cld_obu_line_freespace_info: false
+        cld_obu_line_object_info: true
+        cld_obu_line_signal_info: false
+        cld_obu_spheres_freespace_info: false
+        cld_obu_spheres_object_info: true
+        cld_obu_spheres_signal_info: false
+        rsu_cld_line_freespace_info: false
+        rsu_cld_line_object_info: true
+        rsu_cld_line_signal_info: false
+        rsu_cld_spheres_freespace_info: false
+        rsu_cld_spheres_object_info: true
+        rsu_cld_spheres_signal_info: false
+        rsu_obu_line_freespace_info: false
+        rsu_obu_line_object_info: true
+        rsu_obu_line_signal_info: false
+        rsu_obu_spheres_freespace_info: false
+        rsu_obu_spheres_object_info: true
+        rsu_obu_spheres_signal_info: false
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -422,12 +429,24 @@ Visualization Manager:
       Enabled: true
       Name: RSU_2=OBU_1
       Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
+        cld_obu_line_freespace_info: false
+        cld_obu_line_object_info: true
+        cld_obu_line_signal_info: false
+        cld_obu_spheres_freespace_info: false
+        cld_obu_spheres_object_info: true
+        cld_obu_spheres_signal_info: false
+        rsu_cld_line_freespace_info: false
+        rsu_cld_line_object_info: true
+        rsu_cld_line_signal_info: false
+        rsu_cld_spheres_freespace_info: false
+        rsu_cld_spheres_object_info: true
+        rsu_cld_spheres_signal_info: false
+        rsu_obu_line_freespace_info: false
+        rsu_obu_line_object_info: true
+        rsu_obu_line_signal_info: false
+        rsu_obu_spheres_freespace_info: false
+        rsu_obu_spheres_object_info: true
+        rsu_obu_spheres_signal_info: false
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -439,10 +458,18 @@ Visualization Manager:
       Enabled: true
       Name: RSU_3=OBU_1
       Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        spheres_freespace_info: false
-        spheres_object_info: true
+        cld_obu_line_freespace_info: false
+        cld_obu_line_object_info: true
+        cld_obu_spheres_freespace_info: false
+        cld_obu_spheres_object_info: true
+        rsu_cld_line_freespace_info: false
+        rsu_cld_line_object_info: true
+        rsu_cld_spheres_freespace_info: false
+        rsu_cld_spheres_object_info: true
+        rsu_obu_line_freespace_info: false
+        rsu_obu_line_object_info: true
+        rsu_obu_spheres_freespace_info: false
+        rsu_obu_spheres_object_info: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -454,101 +481,30 @@ Visualization Manager:
       Enabled: true
       Name: RSU_4=OBU_1
       Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
+        cld_obu_line_freespace_info: false
+        cld_obu_line_object_info: true
+        cld_obu_line_signal_info: false
+        cld_obu_spheres_freespace_info: false
+        cld_obu_spheres_object_info: true
+        cld_obu_spheres_signal_info: false
+        rsu_cld_line_freespace_info: false
+        rsu_cld_line_object_info: true
+        rsu_cld_line_signal_info: false
+        rsu_cld_spheres_freespace_info: false
+        rsu_cld_spheres_object_info: true
+        rsu_cld_spheres_signal_info: false
+        rsu_obu_line_freespace_info: false
+        rsu_obu_line_object_info: true
+        rsu_obu_line_signal_info: false
+        rsu_obu_spheres_freespace_info: false
+        rsu_obu_spheres_object_info: true
+        rsu_obu_spheres_signal_info: false
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /RSU_4OBU_1
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_1=CLD_0
-      Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_1CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_2=CLD_0
-      Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_2CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_3=CLD_0
-      Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        spheres_freespace_info: false
-        spheres_object_info: true
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_3CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: RSU_4=CLD_0
-      Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /RSU_4CLD_0
-      Value: true
-    - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
-      Name: CLD_0=OBU_1
-      Namespaces:
-        line_freespace_info: false
-        line_object_info: true
-        line_signal_info: false
-        spheres_freespace_info: false
-        spheres_object_info: true
-        spheres_signal_info: false
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /CLD_0OBU_1
       Value: true
   Enabled: true
   Global Options:
@@ -595,26 +551,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz_default_plugins/Orbit
-      Distance: 1383.6214599609375
+      Angle: 0
+      Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 4495.3271484375
-        Y: 73349.8203125
-        Z: 1.034948706626892
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Scale: 0.6757379174232483
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 4.45355749130249
+      Value: TopDownOrtho (rviz_default_plugins)
+      X: 4495.3271484375
+      Y: 73349.8203125
     Saved: ~
 Window Geometry:
   Displays:
