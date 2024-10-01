@@ -535,7 +535,10 @@ void RvizTools::display()
 
     for (auto& link : links_)
         link.second.publishUpdates();
-    
+
+    for (auto& online_heatmap : online_heatmaps_)
+        online_heatmap.second.publishUpdates();
+
     int_server_.applyChanges();
 }
 
