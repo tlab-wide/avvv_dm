@@ -1,7 +1,9 @@
+import os
+import sys
+
 from ros2_interface.tools import register_new_types
 from general_tools import creating_directory
 from config_avvv import Conf
-import os
 
 
 def main():
@@ -29,7 +31,13 @@ if __name__ == "__main__":
     register_new_types(os.path.join(dm_base_path, "dm_freespace_info_msgs", "msg"))
     register_new_types(os.path.join(dm_base_path, "dm_signal_info_msgs", "msg"))
     register_new_types(os.path.join(dm_base_path, "dm_network_info_msgs", "msg"))
-    
-    from ros2_dm_merger import dm_merger
 
-    main()
+    if sys.argv[1] == "plot":
+        from plotting import redraw_from_pickle
+        file_addresses = sys.argv[2:]
+        for file_address in file_addresses:
+            redraw_from_pickle(file_address)
+    
+    if sys.argv[1] == "main":
+        from ros2_dm_merger import dm_merger
+        main()
