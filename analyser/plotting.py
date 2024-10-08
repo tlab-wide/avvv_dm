@@ -902,7 +902,7 @@ class Plotter:
 
 def redraw_from_pickle(file_address: str) -> None:
     """
-    this function drawing plot from the pickle file
+    Draws plot from the given pickle file
     :param file_address: address of pickle file
     :return:
     """

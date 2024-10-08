@@ -11,7 +11,7 @@ DELAY = 0
 JITTER = 1
 RSSI = 2
 PACKET_LOSS = 3
-NONE = 4
+DEFAULT = 4
 
 # The following variables determine how different network features get visualised
 LINK_COLOUR_VALUE = DELAY
@@ -42,65 +42,30 @@ RSU_OBU_CON_DIST = 300.0
 
 # Topics and their transmitting links
 RSU_DETECTION_TOPICS = [
-    "/RSU_1/object_info",
-    "/RSU_2/object_info",
-    "/RSU_3/object_info",
-    "/RSU_4/object_info",
 ]
 
 OBU_DETECTION_TOPICS = [
-    "/OBU_1/RSU_1/object_infon",
-    "/OBU_1/RSU_2/object_infon",
-    "/OBU_1/RSU_3/object_infon",
-    "/OBU_1/RSU_4/object_infon",
 ]
 
 RSU_FREESPACE_TOPICS = [
-    "/RSU_1/freespace_info",
-    "/RSU_2/freespace_info",
-    "/RSU_3/freespace_info",
-    "/RSU_4/freespace_info",
 ]
 
 OBU_FREESPACE_TOPICS = [
-    "/OBU_1/RSU_1/freespace_infon",
-    "/OBU_1/RSU_2/freespace_infon",
-    "/OBU_1/RSU_3/freespace_infon",
-    "/OBU_1/RSU_4/freespace_infon",
 ]
 
 RSU_SIGNAL_TOPICS = [
-    "/RSU_1/signal_info",
-    "/RSU_2/signal_info",
-    "/RSU_3/signal_info",
-    "/RSU_4/signal_info",
 ]
 
 OBU_SIGNAL_TOPICS = [
-    "/OBU_1/RSU_1/signal_infon",
-    "/OBU_1/RSU_2/signal_infon",
-    "/OBU_1/RSU_4/signal_infon",
 ]
 
 # OBU_TOPICS must match the order in OBU_LIST
 OBU_TOPICS = [
-    "/OBU_1/tf",
 ]
 
 # Link endpoints
 # In format "RSU_ID OBU_ID" or "RSU_ID CLOUD_ID OBU_ID"
 LINK_TOPICS = [
-    "/OBU_1/RSU_1/object_info/network_status",
-    "/OBU_1/RSU_1/freespace_info/network_status",
-    "/OBU_1/RSU_1/signal_info/network_status",
-    "/OBU_1/RSU_2/object_info/network_status",
-    "/OBU_1/RSU_2/freespace_info/network_status",
-    "/OBU_1/RSU_2/signal_info/network_status",
-    "/OBU_1/RSU_3/object_info/network_status",
-    "/OBU_1/RSU_3/freespace_info/network_status",
-    "/OBU_1/RSU_4/object_info/network_status",
-    "/OBU_1/RSU_4/freespace_info/network_status",
-    "/OBU_1/RSU_4/signal_info/network_status",
 ]
 
 # Pointcloud and lanelet map offset (x, y, z in metres)
@@ -121,49 +86,17 @@ FREESPACE_WIDTH = 8.0
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 RSU_LIST = [
-    "RSU_1 4248.971 73445.545 20 330",
-    "RSU_2 4512.198 72932.515 20 330",
-    "RSU_3 4856.297 73143.781 20 330",
-    "RSU_4 5175.195 73128.254 20 330",
 ]
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 OBU_LIST = [
-    "OBU_1 3818 73722 20 210",
 ]
 
 # In format "ID easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
-CLOUD = "CLD_0 4600 73200 80 330"
+CLOUD = ""
 
 # In format "TL_ID/PL_ID CRP_ID Beacon_ID_set | easting(MGRS|metres) northing(MGRS|metres) altitude(MGRS|metres) heading(degree)"
 SIGNAL_LIST = [
-    # Intersection A
-    "TL_0 790529 17 18 19 | 4248.618 73454.534 25 210",
-    "PL_0 790529 32 16 | 4252.34 73464.81 23 300",
-    "PL_1 790529 32 16 | 4257.854 73457.318 23 120",
-    "TL_1 790529 34 35 33 | 4254.012 73460.909 25 210",
-    "PL_2 790529 32 16 | 4245.967 73459.777 23 300",
-    "PL_3 790529 32 16 | 4249.769 73452.525 23 120",
-    "TL_2 790529 51 49 50 | 4248.392 73458.641 25 300",
-    "PL_4 790529 16 48 32 | 4250.476 73451.075 23 30",
-    "PL_5 790529 16 48 32 | 4256.129 73456.338 23 210",
-    
-    # Intersection B
-    "TL_3 798721 34 35 33 | 4504.633 72934.039 25 120",
-    "PL_6 798721 32 48 | 4503.107 72943.152 23 210",
-    "PL_7 798721 32 48 | 4496.474 72939.119 23 30",
-    "TL_4 798721 51 49 50 | 4498.484 72941.316 25 300",
-    "PL_8 798721 32 48 | 4507.343 72934.232 23 210",
-    "PL_9 798721 32 48 | 4499.093 72930.882 23 30",
-    "TL_5 798721 17 18 19 | 4500.046 72935.531 25 30",
-    "PL_10 798721 16 48 32 | 4504.997 72942.688 23 300",
-    "PL_11 798721 16 48 32 | 4508.349 72935.441 23 120",
-    
-    # Intersection D
-    "TL_6 2 18 19 20 0 0 0 0 0 | 5213.449 73126.844 25 350",
-    "TL_7 2 18 19 20 0 0 0 0 0 | 5179.925 73140.073 25 170",
-    "TL_8 2 35 36 33 0 0 0 0 0 | 5186.233 73122.367 25 80",
-    "TL_9 2 35 36 33 0 0 0 0 0 | 5202.519 73151.145 25 260",
 ]
 
 # The target RSU and OBU for real time graphs and offline heatmaps
@@ -276,4 +209,3 @@ def generate_launch_description():
         )
 
     return launch_description
-3
