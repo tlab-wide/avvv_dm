@@ -38,13 +38,14 @@ Entity::Entity(
     , rvizer_(rviz_visual_tools::RvizVisualTools(base_frame, id, node))
 {
     rvizer_.setLifetime(0.0);
+    rvizer_.loadMarkerPub(false);
 }
 
 Entity::Entity(const Entity& other)
     : id_(other.id_)
     , rvizer_(other.rvizer_)
 {
-    
+    rvizer_.loadMarkerPub(false);
 }
 
 Entity::~Entity()
