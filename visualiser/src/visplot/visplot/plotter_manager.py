@@ -54,27 +54,57 @@ class PlotterManager(Node):
         self.target_obu_id = self.get_parameter('target_obu_id').value
         
         # The data stores
-        self.plot_data_store_delay = PlotDataStore("Delay - Time", "Time", "Delay")
-        self.plot_data_store_jitter = PlotDataStore("Jitter - Time", "Time", "Jitter")
-        self.plot_data_store_rssi = PlotDataStore("RSSI - Time", "Time", "RSSI")
-        self.plot_data_store_packet_loss = PlotDataStore("Packet Loss - Time", "Time", "Packet Loss")
+        self.plot_data_store_delay_object_info = PlotDataStore("ObjectInfo Delay - Time", "Time", "Delay")
+        self.plot_data_store_delay_freespace_info = PlotDataStore("FreespaceInfo Delay - Time", "Time", "Delay")
+        self.plot_data_store_delay_signal_info = PlotDataStore("SignalInfo Delay - Time", "Time", "Delay")
+        self.plot_data_store_jitter_object_info = PlotDataStore("ObjectInfo Jitter - Time", "Time", "Jitter")
+        self.plot_data_store_jitter_freespace_info = PlotDataStore("FreespaceInfo Jitter - Time", "Time", "Jitter")
+        self.plot_data_store_jitter_signal_info = PlotDataStore("SignalInfo Jitter - Time", "Time", "Jitter")
+        self.plot_data_store_rssi_object_info = PlotDataStore("ObjectInfo RSSI - Time", "Time", "RSSI")
+        self.plot_data_store_rssi_freespace_info = PlotDataStore("FreespaceInfo RSSI - Time", "Time", "RSSI")
+        self.plot_data_store_rssi_signal_info = PlotDataStore("SignalInfo RSSI - Time", "Time", "RSSI")
+        self.plot_data_store_packet_loss_object_info = PlotDataStore("ObjectInfo Packet Loss - Time", "Time", "Packet Loss")
+        self.plot_data_store_packet_loss_freespace_info = PlotDataStore("FreespaceInfo Packet Loss - Time", "Time", "Packet Loss")
+        self.plot_data_store_packet_loss_signal_info = PlotDataStore("SignalInfo Packet Loss - Time", "Time", "Packet Loss")
 
         # The plot manager
         self.real_time_plotter = RealTimePlotter(
-            self.plot_data_store_delay
-            , self.plot_data_store_jitter
-            , self.plot_data_store_rssi
-            , self.plot_data_store_packet_loss)
+            self.plot_data_store_delay_object_info,
+            self.plot_data_store_delay_freespace_info,
+            self.plot_data_store_delay_signal_info,
+            self.plot_data_store_jitter_object_info,
+            self.plot_data_store_jitter_freespace_info,
+            self.plot_data_store_jitter_signal_info,
+            self.plot_data_store_rssi_object_info,
+            self.plot_data_store_rssi_freespace_info,
+            self.plot_data_store_rssi_signal_info,
+            self.plot_data_store_packet_loss_object_info,
+            self.plot_data_store_packet_loss_freespace_info,
+            self.plot_data_store_packet_loss_signal_info)
 
         # The subscriber on the given topic
-        self.subscription = self.create_subscription(
+        self.object_info_subscription = self.create_subscription(
             NetworkStatus,
-            "/" + self.target_obu_id + "/" + self.target_rsu_id + "/network_status",
-            self.update_graphs,
+            "/" + self.target_obu_id + "/" + self.target_rsu_id + "/object_info/network_status",
+            self.update_graphs_object_info,
+            10)
+
+        # The subscriber on the given topic
+        self.freespace_info_subscription = self.create_subscription(
+            NetworkStatus,
+            "/" + self.target_obu_id + "/" + self.target_rsu_id + "/freespace_info/network_status",
+            self.update_graphs_freespace_info,
+            10)
+
+        # The subscriber on the given topic
+        self.signal_info_subscription = self.create_subscription(
+            NetworkStatus,
+            "/" + self.target_obu_id + "/" + self.target_rsu_id + "/signal_info/network_status",
+            self.update_graphs_signal_info,
             10)
 
 
-    def update_graphs(self, message: NetworkStatus) -> None:
+    def update_graphs_object_info(self, message: NetworkStatus) -> None:
         """
         Callback function that updates the graph points for delay, jitter, 
         RSSI and packet loss based on the incoming network status message
@@ -101,10 +131,84 @@ class PlotterManager(Node):
         new_packet_loss_point = PointTimeValue(
             message.stamp.sec + message.stamp.nanosec * 1e-9, message.packet_loss)
 
-        self.plot_data_store_delay.add_new_timevalue_point_directly(new_delay_point)
-        self.plot_data_store_jitter.add_new_timevalue_point_directly(new_jitter_point)
-        self.plot_data_store_rssi.add_new_timevalue_point_directly(new_rssi_point)
-        self.plot_data_store_packet_loss.add_new_timevalue_point_directly(new_packet_loss_point)
+        self.plot_data_store_delay_object_info.add_new_timevalue_point_directly(new_delay_point)
+        self.plot_data_store_jitter_object_info.add_new_timevalue_point_directly(new_jitter_point)
+        self.plot_data_store_rssi_object_info.add_new_timevalue_point_directly(new_rssi_point)
+        self.plot_data_store_packet_loss_object_info.add_new_timevalue_point_directly(new_packet_loss_point)
+
+        try:
+            self.real_time_plotter.update()
+        except KeyboardInterrupt:
+            pass
+
+    def update_graphs_freespace_info(self, message: NetworkStatus) -> None:
+        """
+        Callback function that updates the graph points for delay, jitter, 
+        RSSI and packet loss based on the incoming network status message
+
+        Parameters
+        ----------
+        message : dm_network_info_msgs.NetworkStatus
+            The message containing new delay, jitter, RSSI and packet loss data to 
+            append to the graphs
+        
+        Returns
+        -------
+        None
+        """
+        new_delay_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.delay)
+
+        new_jitter_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.jitter)
+
+        new_rssi_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.rssi)
+        
+        new_packet_loss_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.packet_loss)
+
+        self.plot_data_store_delay_freespace_info.add_new_timevalue_point_directly(new_delay_point)
+        self.plot_data_store_jitter_freespace_info.add_new_timevalue_point_directly(new_jitter_point)
+        self.plot_data_store_rssi_freespace_info.add_new_timevalue_point_directly(new_rssi_point)
+        self.plot_data_store_packet_loss_freespace_info.add_new_timevalue_point_directly(new_packet_loss_point)
+
+        try:
+            self.real_time_plotter.update()
+        except KeyboardInterrupt:
+            pass
+
+    def update_graphs_signal_info(self, message: NetworkStatus) -> None:
+        """
+        Callback function that updates the graph points for delay, jitter, 
+        RSSI and packet loss based on the incoming network status message
+
+        Parameters
+        ----------
+        message : dm_network_info_msgs.NetworkStatus
+            The message containing new delay, jitter, RSSI and packet loss data to 
+            append to the graphs
+        
+        Returns
+        -------
+        None
+        """
+        new_delay_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.delay)
+
+        new_jitter_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.jitter)
+
+        new_rssi_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.rssi)
+        
+        new_packet_loss_point = PointTimeValue(
+            message.stamp.sec + message.stamp.nanosec * 1e-9, message.packet_loss)
+
+        self.plot_data_store_delay_signal_info.add_new_timevalue_point_directly(new_delay_point)
+        self.plot_data_store_jitter_signal_info.add_new_timevalue_point_directly(new_jitter_point)
+        self.plot_data_store_rssi_signal_info.add_new_timevalue_point_directly(new_rssi_point)
+        self.plot_data_store_packet_loss_signal_info.add_new_timevalue_point_directly(new_packet_loss_point)
 
         try:
             self.real_time_plotter.update()
